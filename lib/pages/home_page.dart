@@ -624,7 +624,7 @@ void dispose() {
             NavigationDestination(
               icon: Icon(Icons.grid_view_outlined),
               selectedIcon: Icon(Icons.grid_view),
-              label: "Sayfa 2",
+              label: "Mesajlar",
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline),

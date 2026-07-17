@@ -1,3 +1,4 @@
+console.log("SERVER VERSION: CHAT V2");
 const WebSocket = require("ws");
 
 const wss = new WebSocket.Server({
@@ -8,6 +9,8 @@ console.log("Sunucu çalışıyor...");
 
 // Etkinlik listesi
 let events = [];
+
+let messages = [];
 
 // Otomatik ID
 let nextId = 1;
@@ -37,7 +40,19 @@ wss.on("connection", (ws) => {
     })
   );
 
+  ws.send(
+    JSON.stringify({
+      type: "chat",
+      messages: messages,
+    })
+  )
+
   ws.on("message", (message) => {
+
+
+
+    console.log("HAM VERİ:", message.toString());
+
     const data = JSON.parse(message);
 
     // ETKİNLİK EKLE
@@ -83,9 +98,35 @@ wss.on("connection", (ws) => {
         broadcastEvents();
       }
     }
+    else if (data.type === "chat") {
+
+      console.log("CHAT BLOĞUNA GİRDİ");
+
+      console.log(data);
+
+      console.log(
+        `${data.user}: ${data.message}`
+      );
+
+      messages.push({
+        user: data.user,
+        message: data.message,
+      });
+
+      const chatData = JSON.stringify({
+        type: "chat",
+        messages: messages,
+      });
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(chatData);
+        }
+      });
+    }
   });
 
-  ws.on("close", () => {
-    console.log("Kullanıcı ayrıldı.");
+    ws.on("close", () => {
+      console.log("Kullanıcı ayrıldı.");
+    });
   });
-});

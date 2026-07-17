@@ -1,203 +1,192 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../chat/chat_message.dart';
+
+import 'package:flutter/material.dart';
 
 class WebSocketPage extends StatefulWidget {
   const WebSocketPage({super.key});
 
   @override
   State<WebSocketPage> createState() => _WebSocketPageState();
+
 }
 
 class _WebSocketPageState extends State<WebSocketPage> {
-  late final WebSocketChannel channel;
 
-  final titleController = TextEditingController();
-  final timeController = TextEditingController();
-  final locationController = TextEditingController();
+  late WebSocketChannel channel;
 
-  Map<String, dynamic>? receivedEvent;
+  List<ChatMessage> messages = [];
+
+  final TextEditingController messageController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
-    channel = WebSocketChannel.connect(
-      Uri.parse("ws://localhost:8080"), // kendi IP adresim 192.168.60.18 veya localhost
+    print("Chat sayfası açıldı");
 
+    channel = WebSocketChannel.connect(
+      Uri.parse("ws://localhost:8080"),
     );
 
-    channel.stream.listen((message) {
+    print("WebSocket oluşturuldu");
 
-      final event = jsonDecode(message);
+    channel.stream.listen(
+      (message) {
+        print("SUNUCUDAN GELDİ: $message");
 
-      setState(() {
-        receivedEvent = event;
-      });
-    });
+        final data = jsonDecode(message);
+
+        if (data["type"] == "chat") {
+          setState(() {
+            messages = (data["messages"] as List)
+                .map((e) => ChatMessage.fromJson(e))
+                .toList();
+          });
+        }
+      },
+
+      onError: (error) {
+        print("WEBSOCKET HATASI: $error");
+      },
+
+      onDone: () {
+        print("WEBSOCKET KAPANDI");
+      },
+    );
   }
 
   @override
   void dispose() {
     channel.sink.close();
-    titleController.dispose();
-    timeController.dispose();
-    locationController.dispose();
+    messageController.dispose();
     super.dispose();
-  }
-
-  void sendEvent() {
-    if (titleController.text.isEmpty ||
-        timeController.text.isEmpty ||
-        locationController.text.isEmpty) {
-      return;
-    }
-
-    final event = {
-      "title": titleController.text,
-      "time": timeController.text,
-      "location": locationController.text,
-    };
-
-    channel.sink.add(jsonEncode(event));
-
-    titleController.clear();
-    timeController.clear();
-    locationController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
+    return Scaffold(
 
-              const SizedBox(height: 20),
+      appBar: AppBar(
+        title: const Text("Mesajlar"),
+        centerTitle: true,
+      ),
 
-              const Text(
-                "mesajlaşma sayfası ",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 9, 55, 45),
-                ),
-              ),
+      body: Column(
 
-              const SizedBox(height: 35),
+        children: [
 
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: "Etkinlik Adı",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              TextField(
-                controller: timeController,
-                decoration: InputDecoration(
-                  labelText: "Saat",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              TextField(
-                controller: locationController,
-                decoration: InputDecoration(
-                  labelText: "Konum",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 9, 55, 45),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: sendEvent,
-                  child: const Text(
-                    "Etkinlik Oluştur",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 35),
-
-              const Divider(),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                "Sunucudan Gelen Veri",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                
-                  child: receivedEvent == null
-                   ? const Text(
-                        "Henüz etkinlik yok.",
-                        style: TextStyle(fontSize: 18),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: messages.isEmpty
+                  ? [
+                      const Center(
+                        child: Text("Henüz mesaj yok."),
                       )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                    ]
+                  : messages.map((msg) {
 
-                          Text(
-                            "${receivedEvent!["title"]}",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                          children: [
+
+                            Text(
+                              msg.user,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
 
-                          const SizedBox(height: 10),
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.all(12),
 
-                          Text(
-                            "${receivedEvent!["time"]}",
-                            style: const TextStyle(fontSize: 18),
-                          ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF6F2),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
 
-                          const SizedBox(height: 8),
+                              child: Text(msg.message),
+                            ),
 
-                          Text(
-                           "${receivedEvent!["location"]}",
-                           style: const TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                )
-              ),
-            ],
+                          ],
+                        ),
+                      );
+
+                    }).toList(),
+            ),
           ),
-        ),
+
+          const Divider(height: 1),
+
+          Padding(
+            padding: const EdgeInsets.all(12),
+
+            child: Row(
+
+              children: [
+
+                Expanded(
+
+                  child: TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      hintText: "Mesaj yaz...",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+
+                ),
+
+                const SizedBox(width: 10),
+
+                IconButton(
+                  onPressed: () {
+
+                    print("Gönder butonuna basıldı");
+
+                    if (messageController.text.trim().isEmpty) {
+                      return;
+                    }
+                    final chat = {
+                      "type": "chat",
+                      "user": "Kullanıcı1",
+                      "message": messageController.text.trim(),
+                    };
+
+                    print(chat);
+
+                    channel.sink.add(jsonEncode(chat));
+                    channel.sink.add(
+                      jsonEncode({
+                        "type": "chat",
+                        "user": "Kullanıcı1",
+                        "message": messageController.text.trim(),
+                      }),
+                    );
+                    print("Mesaj sunucuya gönderildi.");
+                    messageController.clear();
+
+                  },
+
+                  icon: const Icon(Icons.send),
+                ),
+
+              ],
+            ),
+          ),
+
+        ],
       ),
     );
   }

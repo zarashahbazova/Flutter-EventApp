@@ -7,7 +7,7 @@ class WebSocketService {
   void connect() {
 
     channel = WebSocketChannel.connect(
-      Uri.parse("ws://192.168.60.18:8080"),
+      Uri.parse("ws://localhost:8080"),
     );
 
   }

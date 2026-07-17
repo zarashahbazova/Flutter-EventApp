@@ -29,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   late WebSocketChannel channel;
 
   bool get isAdmin => widget.email == "admin@staj.com";
+  bool serverConnected = false;
 
 @override
 void initState() {
@@ -37,7 +38,7 @@ void initState() {
   connectWebSocket();
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    showLocationDialog();
+   showLocationDialog();
   });
 }
 
@@ -202,6 +203,7 @@ void showAddEventDialog() {
                   onPressed: () {
 
                     if (titleController.text.isEmpty ||
+                        dateController.text.isEmpty ||
                         timeController.text.isEmpty ||
                         locationController.text.isEmpty) {
                  
@@ -216,9 +218,21 @@ void showAddEventDialog() {
                       "date": dateController.text,
                     };
 
-                    channel.sink.add(jsonEncode(event));
-
-               
+                    if (serverConnected) {
+                      channel.sink.add(jsonEncode(event));
+                    } else {
+                      setState(() {
+                        events.add(
+                          Event(
+                            id: DateTime.now().millisecondsSinceEpoch,
+                            title: titleController.text,
+                            date: dateController.text,
+                            time: timeController.text,
+                            location: locationController.text,
+                          ),
+                        );
+                      });
+                    }
 
                     Navigator.pop(context);
 
@@ -297,30 +311,45 @@ void showEventMenu(Event event) {
 }
 
 void connectWebSocket() {
+  try {
+    channel = WebSocketChannel.connect(
+      Uri.parse("ws://localhost:8080"),
+    );
 
-  channel = WebSocketChannel.connect(
-    Uri.parse("ws://192.168.60.18:8080"),
-  );
+    serverConnected = true;
 
-  channel.stream.listen((message) {
+    channel.stream.listen(
+      (message) {
 
-    final data = jsonDecode(message);
+        final data = jsonDecode(message);
 
-    if (data["type"] == "events") {
+        if (data["type"] == "events") {
+          setState(() {
+            events = (data["events"] as List)
+                .map((e) => Event.fromJson(e))
+                .toList();
+          });
+        }
+      },
+          
+      onError: (error) {
+        serverConnected = false;
+        debugPrint("WebSocket Hatası: $error");
+      },
 
-      setState(() {
-
-        events = (data["events"] as List)
-            .map((e) => Event.fromJson(e))
-            .toList();
-
-      });
-
+      onDone: () {
+        serverConnected = false;
+        debugPrint("Websocket bağlantısı kapandı");
+      },
+    );
     }
+    catch (e) {
+        debugPrint("Bağlantı kurulamadı: $e");
+    }
+  }
 
-  });
 
-}
+
   String getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return "Günaydın";

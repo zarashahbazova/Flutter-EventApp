@@ -23,7 +23,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
     super.initState();
 
     channel = WebSocketChannel.connect(
-      Uri.parse("ws://192.168.60.18:8080"), // kendi IP adresim 192.168.60.18
+      Uri.parse("ws://localhost:8080"), // kendi IP adresim 192.168.60.18 veya localhost
 
     );
 
@@ -78,7 +78,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
               const SizedBox(height: 20),
 
               const Text(
-                "Etkinlik Yönetimi",
+                "mesajlaşma sayfası ",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

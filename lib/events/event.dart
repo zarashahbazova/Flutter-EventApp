@@ -2,12 +2,14 @@ class Event {
 
   final int id;
   final String title;
+  final String date;
   final String time;
   final String location;
 
   Event({
     required this.id,
     required this.title,
+    required this.date,
     required this.time,
     required this.location,
   });
@@ -19,6 +21,8 @@ class Event {
       id: json["id"],
 
       title: json["title"],
+
+      date: json["date"] ?? "",
 
       time: json["time"],
 

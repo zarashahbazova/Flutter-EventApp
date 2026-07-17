@@ -580,7 +580,9 @@ void dispose() {
   final pages = [
     homeScreen(),
 
-    const WebSocketPage(),
+    WebSocketPage(
+      name: widget.name,
+    ),
 
     ProfileScreen(
       name: widget.name,

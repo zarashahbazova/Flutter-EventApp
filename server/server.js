@@ -113,6 +113,8 @@ wss.on("connection", (ws) => {
         message: data.message,
       });
 
+      console.log("Mesaj sayısı:", messages.length);
+
       const chatData = JSON.stringify({
         type: "chat",
         messages: messages,

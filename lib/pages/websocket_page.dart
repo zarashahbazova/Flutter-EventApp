@@ -7,7 +7,12 @@ import '../chat/chat_message.dart';
 import 'package:flutter/material.dart';
 
 class WebSocketPage extends StatefulWidget {
-  const WebSocketPage({super.key});
+  
+  final String name;
+  
+  const WebSocketPage({
+    super.key,
+    required this.name});
 
   @override
   State<WebSocketPage> createState() => _WebSocketPageState();
@@ -25,7 +30,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
   @override
   void initState() {
     super.initState();
-
+    print("WEBSOCKET PAGE INIT");
     print("Chat sayfası açıldı");
 
     channel = WebSocketChannel.connect(
@@ -61,6 +66,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
 
   @override
   void dispose() {
+    print("WEBSOCKET PAGE DISPOSE");
     channel.sink.close();
     messageController.dispose();
     super.dispose();
@@ -71,8 +77,16 @@ class _WebSocketPageState extends State<WebSocketPage> {
     return Scaffold(
 
       appBar: AppBar(
-        title: const Text("Mesajlar"),
+        title: const Text(
+          "Mesajlar",
+          style: TextStyle(
+            color:Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: const Color.fromARGB(175, 9, 55, 45),
+        elevation: 6,
       ),
 
       body: Column(
@@ -106,12 +120,13 @@ class _WebSocketPageState extends State<WebSocketPage> {
                             ),
 
                             Container(
-                              margin: const EdgeInsets.only(top: 4),
+                              margin: const EdgeInsets.only(top: 4), //mesaj kutusu aralık ve boyutları
                               padding: const EdgeInsets.all(12),
 
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEAF6F2),
+                              decoration: BoxDecoration( //mesaj kutusu renkleri
+                                color: const Color.fromARGB(55, 48, 109, 89),
                                 borderRadius: BorderRadius.circular(15),
+                                
                               ),
 
                               child: Text(msg.message),
@@ -138,48 +153,74 @@ class _WebSocketPageState extends State<WebSocketPage> {
 
                   child: TextField(
                     controller: messageController,
+
+                    cursorColor: const Color(0xFF496860),
+
                     decoration: InputDecoration(
+
                       hintText: "Mesaj yaz...",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                      ),
+
+                      filled: true,
+                      fillColor: Colors.white,
+
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 15,
+                      ),
+
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: const BorderSide(
+                          color: Color.fromARGB(123, 35, 33, 5),
+                          width: 2,
+                        ),
+                      ),
+
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: const BorderSide(
+                          color: Color.fromARGB(175, 9, 55, 45),
+                          width: 3,
+                        ),
                       ),
                     ),
                   ),
-
                 ),
 
                 const SizedBox(width: 10),
 
-                IconButton(
-                  onPressed: () {
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(175, 9, 55, 45),
+                    shape: BoxShape.circle,
+                  ),
 
-                    print("Gönder butonuna basıldı");
+                  child: IconButton(
+                    onPressed: () {
 
-                    if (messageController.text.trim().isEmpty) {
-                      return;
-                    }
-                    final chat = {
-                      "type": "chat",
-                      "user": "Kullanıcı1",
-                      "message": messageController.text.trim(),
-                    };
+                      if (messageController.text.trim().isEmpty) {
+                        return;
+                      }
 
-                    print(chat);
-
-                    channel.sink.add(jsonEncode(chat));
-                    channel.sink.add(
-                      jsonEncode({
+                      final chat = {
                         "type": "chat",
-                        "user": "Kullanıcı1",
+                        "user": widget.name,
                         "message": messageController.text.trim(),
-                      }),
-                    );
-                    print("Mesaj sunucuya gönderildi.");
-                    messageController.clear();
+                      };
 
-                  },
+                      channel.sink.add(jsonEncode(chat));
 
-                  icon: const Icon(Icons.send),
+                      messageController.clear();
+                    },
+                    icon: const Icon(
+                      Icons.send,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
 
               ],

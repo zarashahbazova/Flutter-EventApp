@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../main.dart';
+import 'login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -297,4 +297,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-}
+
+
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Center(
+//         child: TextFormField(
+//           decoration: const InputDecoration(
+//             hintText: "Test",
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+ }

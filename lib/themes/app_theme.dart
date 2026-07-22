@@ -4,10 +4,10 @@ class AppTheme {
   //==================================================
   // TEMA RENK PALETİ (PURPLE THEME)
   //==================================================
-  static const Color primaryColor = Color.fromARGB(245, 97, 1, 108); // Ana Mor Renk
-  static const Color primaryDarkColor = Color.fromARGB(255, 57, 4, 94); // Koyu Mor
-  static const Color accentColor = Color.fromARGB(255, 208, 93, 228); // Açık Vurgu Moru
-  static const Color loginPageBG = Color.fromARGB(255, 97, 1, 108);
+  static const Color primaryColor = Color.fromARGB(245, 31, 2, 71); // Ana Mor Renk
+  static const Color primaryDarkColor = Color.fromARGB(245, 23, 5, 49); // Koyu Mor
+  static const Color accentColor = Color.fromARGB(255, 105, 20, 121); // Açık Vurgu Moru
+  static const Color loginPageBG = Color.fromARGB(255, 91, 27, 98);
   // Nötr Renkler
   static const Color white = Colors.white;
   static const Color black = Colors.black;

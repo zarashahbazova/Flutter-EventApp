@@ -12,10 +12,11 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>(); //formu kontrol etmek icin
 
-  final TextEditingController
+  final TextEditingController 
   usernameController = //textfield tek basına tazıyı saklamaz, controller saklar ve sürekli güncellenir
       TextEditingController();
 
@@ -25,39 +26,35 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     //bir kere çalisiyor, isLoggedIn = true ise otomatik homepage acicak
     super.initState();
-    checkLogin();
+    checkLogin(); 
   }
 
-  Future<void> checkLogin() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> checkLogin() async { //bu kullanıcı daha önce giris yapmis mi diye kontrol ediyor
+    final prefs = await SharedPreferences.getInstance(); //telefonun yerel hafizasına erişiyor önceden kayıtlı bilgiler okunuyor
 
-    bool isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
+    bool isLoggedIn = prefs.getBool("isLoggedIn") ?? false; //tekefon hafizasına kayıtlı mı. (hiç kayıtlı değilse de varsayılan olarak false kullan)
 
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) return; // fonksiyon burda bitiyor, login ekrani aciliyor
+    String name = prefs.getString("fullName") ?? "";//eğer giris yapilmissa telefon hafizasindan isim mail okuyor 
+    String email = prefs.getString("email") ?? "";     
 
-    String name = prefs.getString("fullName") ?? "";
-
-    String email = prefs.getString("email") ?? "";
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {  //frame bitince bu ekrani calistir
       Navigator.pushReplacement(
         context,
-
-        MaterialPageRoute(
-          builder: (_) => HomePage(name: name, email: email),
+        MaterialPageRoute( // bi sayfadan baska bi sayfaya geçişi sağlar hangi sayfa oldugunu belirtir
+          builder: (_) => HomePage(name: name, email: email), //builder yeni sayfa oluşturan fonksiyon
         ),
       );
     });
   }
 
-  Future<void> login() async {
-    if (!_formKey.currentState!.validate())
-      return; //tüm validatorları tek tek çağiriyor, hepsi doğruysa true dönüyor
+  Future<void> login() async { //login fonksiyonu, zaman alabilir
+    if (!_formKey.currentState!.validate()) //önce form widgetina gidiyor, donra formun içindeki tüm textformfieldları buluyor
+      return; //tüm validatorları tek tek çalistiriyo, hepsi doğruysa true dönüyor
 
     final user = await DatabaseHelper.instance.login(
-      //sqlite b ağlantısı (database helper y)
+      //sqlite bağlantısı (database helper y)
       usernameController.text.trim(),
-
       passwordController.text.trim(),
     );
 
@@ -69,11 +66,11 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance(); // telefonun local hafizasini aciyo
 
     await prefs.setBool("isLoggedIn", true);
 
-    await prefs.setInt("userId", user.id!);
+    await prefs.setInt("userId", user.id!); 
 
     await prefs.setString("username", user.username);
 
@@ -81,10 +78,10 @@ class _LoginPageState extends State<LoginPage> {
 
     await prefs.setString("email", user.email);
 
-    if (!mounted) return;
+    if (!mounted) return; //bu ekran hala uygylamada acık mı, acıksa devam et
 
-    Navigator.pushReplacement(
-      context,
+    Navigator.pushReplacement( // giriş başarılıysa logini kapatıp homepage acar
+      context,                              
       MaterialPageRoute(
         builder: (_) => HomePage(name: user.fullName, email: user.email),
       ),
@@ -106,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Container(
                   height: 600,
-                  color: AppTheme.loginPageBG, // arkaplandaki yeşil renk
+                  color: const Color.fromARGB(245, 55, 29, 91), // arkaplandaki yeşil renk
                 ),
                 Positioned(
                   top: 300,

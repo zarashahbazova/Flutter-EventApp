@@ -1,209 +1,3 @@
-// import 'dart:convert';
-
-// import 'package:web_socket_channel/web_socket_channel.dart';
-
-// import '../chat/chat_message.dart';
-
-// import 'package:flutter/material.dart';
-
-// import '../themes/app_theme.dart';
-
-// class WebSocketPage extends StatefulWidget {
-//   final String name;
-
-//   const WebSocketPage({super.key, required this.name});
-
-//   @override
-//   State<WebSocketPage> createState() => _WebSocketPageState();
-// }
-
-// class _WebSocketPageState extends State<WebSocketPage> {
-//   late WebSocketChannel channel;
-
-//   List<ChatMessage> messages = [];
-
-//   final TextEditingController messageController = TextEditingController();
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     print("WEBSOCKET PAGE INIT");
-//     print("Chat sayfası açıldı");
-
-//     channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080"));
-
-//     print("WebSocket oluşturuldu");
-
-//     channel.stream.listen(
-//       (message) {
-//         print("SUNUCUDAN GELDİ: $message");
-
-//         final data = jsonDecode(message);
-
-//         if (data["type"] == "chat") {
-//           setState(() {
-//             messages = (data["messages"] as List)
-//                 .map((e) => ChatMessage.fromJson(e))
-//                 .toList();
-//           });
-//         }
-//       },
-
-//       onError: (error) {
-//         print("WEBSOCKET HATASI: $error");
-//       },
-
-//       onDone: () {
-//         print("WEBSOCKET KAPANDI");
-//       },
-//     );
-//   }
-
-//   @override
-//   void dispose() {
-//     print("WEBSOCKET PAGE DISPOSE");
-//     channel.sink.close();
-//     messageController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-//     final colorScheme = theme.colorScheme;
-
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(
-//           "Mesajlar",
-//           style: theme.textTheme.titleLarge?.copyWith(
-//             color: AppTheme.white,
-//             fontWeight: AppTheme.bold,
-//           ),
-//         ),
-//         centerTitle: true,
-//       ),
-
-//       body: Column(
-//         children: [
-//           Expanded(
-//             child: ListView(
-//               padding: const EdgeInsets.all(AppTheme.pagePadding),
-//               children: messages.isEmpty
-//                   ? [
-//                       Center(
-//                         child: Text(
-//                           "Henüz mesaj yok.",
-//                           style: theme.textTheme.bodyMedium,
-//                         ),
-//                       ),
-//                     ]
-//                   : messages.map((msg) {
-//                       return Padding(
-//                         padding: const EdgeInsets.only(
-//                           bottom: AppTheme.itemSpacing,
-//                         ),
-
-//                         child: Column(
-//                           crossAxisAlignment: CrossAxisAlignment.start,
-
-//                           children: [
-//                             Text(
-//                               msg.user,
-//                               style: theme.textTheme.bodyMedium?.copyWith(
-//                                 fontWeight: AppTheme.bold,
-//                                 color: colorScheme.primary,
-//                               ),
-//                             ),
-
-//                             Container(
-//                               margin: const EdgeInsets.only(
-//                                 top: 4,
-//                               ), //mesaj kutusu aralık ve boyutları
-//                               padding: const EdgeInsets.all(
-//                                 AppTheme.cardPadding,
-//                               ),
-
-//                               decoration: BoxDecoration(
-//                                 //mesaj kutusu renkleri
-//                                 color: colorScheme.surface,
-//                                 borderRadius: BorderRadius.circular(
-//                                   AppTheme.radiusMedium,
-//                                 ),
-//                                 border: Border.all(
-//                                   color: colorScheme.primary.withValues(
-//                                     alpha: 0.15,
-//                                   ),
-//                                 ),
-//                               ),
-
-//                               child: Text(
-//                                 msg.message,
-//                                 style: theme.textTheme.bodyLarge,
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       );
-//                     }).toList(),
-//             ),
-//           ),
-
-//           Divider(
-//             height: 1,
-//             color: colorScheme.onSurface.withValues(alpha: 0.1),
-//           ),
-
-//           Padding(
-//             padding: const EdgeInsets.all(12),
-
-//             child: Row(
-//               children: [
-//                 Expanded(
-//                   child: TextField(
-//                     controller: messageController,
-
-//                     cursorColor: colorScheme.primary,
-
-//                     decoration: InputDecoration(hintText: "Mesaj yaz..."),
-//                   ),
-//                 ),
-
-//                 const SizedBox(width: 10),
-
-//                 Container(
-//                   decoration: BoxDecoration(
-//                     color: colorScheme.primary,
-//                     shape: BoxShape.circle,
-//                   ),
-
-//                   child: IconButton(
-//                     onPressed: () {
-//                       if (messageController.text.trim().isEmpty) {
-//                         return;
-//                       }
-
-//                       final chat = {
-//                         "type": "chat",
-//                         "user": widget.name,
-//                         "message": messageController.text.trim(),
-//                       };
-
-//                       channel.sink.add(jsonEncode(chat));
-
-//                       messageController.clear();
-//                     },
-//                     icon: const Icon(Icons.send, color: AppTheme.grey100),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'dart:convert';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -223,7 +17,9 @@ class WebSocketPage extends StatefulWidget {
 }
 
 class _WebSocketPageState extends State<WebSocketPage> {
-  late WebSocketChannel channel;
+  WebSocketChannel? channel;
+  bool connected = false;
+  bool loading = true;
   List<ChatMessage> messages = [];
   final TextEditingController messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController(); // Otomatik kaydırma için
@@ -231,38 +27,63 @@ class _WebSocketPageState extends State<WebSocketPage> {
   @override
   void initState() {
     super.initState();
-    print("WEBSOCKET PAGE INIT");
 
-    channel = WebSocketChannel.connect(
-      Uri.parse("ws://localhost:8080"),
-    );
+    try {
+      channel = WebSocketChannel.connect(
+        Uri.parse("ws://localhost:8080"),
+      );
 
-    channel.stream.listen(
-      (message) {
-        final data = jsonDecode(message);
+      channel!.ready.then((_) {
+        if (!mounted) return;
 
-        if (data["type"] == "chat") {
+        setState(() {
+          connected = true;
+        });
+      }).catchError((e) {
+        if (!mounted) return;
+
+        setState(() {
+          connected = false;
+        });
+
+        debugPrint("Bağlantı kurulamadı: $e");
+      });
+
+      channel!.stream.listen(
+        (message) {
+          final data = jsonDecode(message);
+
+          if (data["type"] == "chat") {
+            setState(() {
+              messages = (data["messages"] as List)
+                  .map((e) => ChatMessage.fromJson(e))
+                  .toList();
+            });
+
+            Future.delayed(
+              const Duration(milliseconds: 100),
+              _scrollToBottom,
+            );
+          }
+        },
+        onError: (_) {
           setState(() {
-            messages = (data["messages"] as List)
-                .map((e) => ChatMessage.fromJson(e))
-                .toList();
+            connected = false;
           });
-          // Yeni mesaj gelince en alta kaydır
-          Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
-        }
-      },
-      onError: (error) {
-        print("WEBSOCKET HATASI: $error");
-      },
-      onDone: () {
-        print("WEBSOCKET KAPANDI");
-      },
-    );
+        },
+        onDone: () {
+          setState(() {
+            connected = false;
+          });
+        },
+      );
+    } catch (e) {
+      connected = false;
+    }
   }
-
   @override
   void dispose() {
-    channel.sink.close();
+    channel?.sink.close();
     messageController.dispose();
     _scrollController.dispose(); // Dispose etmeyi unutma
     super.dispose();
@@ -289,7 +110,16 @@ class _WebSocketPageState extends State<WebSocketPage> {
       "message": messageController.text.trim(),
     };
 
-    channel.sink.add(jsonEncode(chat));
+    if (!connected || channel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Sunucuya bağlanılamadı."),
+        ),
+      );
+      return;
+    }
+
+channel!.sink.add(jsonEncode(chat));
     messageController.clear();
   }
 
@@ -324,7 +154,13 @@ class _WebSocketPageState extends State<WebSocketPage> {
         children: [
           // Mesaj Listesi Alanı
           Expanded(
-            child: messages.isEmpty
+          child: !connected
+            ? const Center(
+                child: Text(
+                  "Sunucuya bağlanılamadı.",
+                ),
+              )
+            : messages.isEmpty
                 ? _buildEmptyState(theme)
                 : ListView.separated(
                     controller: _scrollController,

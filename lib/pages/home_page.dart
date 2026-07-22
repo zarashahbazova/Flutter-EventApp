@@ -20,15 +20,26 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   List<Event> events = [];
-  late WebSocketChannel channel;
+  //late WebSocketChannel channel;
+  WebSocketChannel? channel;
 
   bool get isAdmin => widget.email == "zarifesahbazz@gmail.com";
   bool serverConnected = false;
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   connectWebSocket();
+
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     checkLocationDialog();
+  //   });
+  // }
   @override
   void initState() {
     super.initState();
-    connectWebSocket();
+
+    // connectWebSocket();   // Şimdilik kapalı
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkLocationDialog();
@@ -168,7 +179,7 @@ class _HomePageState extends State<HomePage> {
                       };
 
                       if (serverConnected) {
-                        channel.sink.add(jsonEncode(event));
+                        channel?.sink.add(jsonEncode(event));
                       } else {
                         setState(() {
                           events.add(
@@ -230,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  channel.sink.add(
+                  channel?.sink.add(
                     jsonEncode({"type": "delete", "id": event.id}),
                   );
                 },
@@ -248,7 +259,7 @@ class _HomePageState extends State<HomePage> {
       channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080"));
       serverConnected = true;
 
-      channel.stream.listen(
+      channel?.stream.listen(
         (message) {
           final data = jsonDecode(message);
           if (data["type"] == "events") {
@@ -457,7 +468,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    channel.sink.close();
+    channel?.sink.close();
     super.dispose();
   }
 
@@ -468,6 +479,18 @@ class _HomePageState extends State<HomePage> {
       WebSocketPage(name: widget.name),
       ProfileScreen(name: widget.name, email: widget.email),
     ];
+    // final pages = [
+    //   homeScreen(),
+
+    //   const Center(
+    //     child: Text("Mesajlar Sayfası"),
+    //   ),
+
+    //   ProfileScreen(
+    //     name: widget.name,
+    //     email: widget.email,
+    //   ),
+    // ];
 
     return Scaffold(
       body: pages[_currentIndex],

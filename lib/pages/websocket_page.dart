@@ -1,3 +1,209 @@
+// import 'dart:convert';
+
+// import 'package:web_socket_channel/web_socket_channel.dart';
+
+// import '../chat/chat_message.dart';
+
+// import 'package:flutter/material.dart';
+
+// import '../themes/app_theme.dart';
+
+// class WebSocketPage extends StatefulWidget {
+//   final String name;
+
+//   const WebSocketPage({super.key, required this.name});
+
+//   @override
+//   State<WebSocketPage> createState() => _WebSocketPageState();
+// }
+
+// class _WebSocketPageState extends State<WebSocketPage> {
+//   late WebSocketChannel channel;
+
+//   List<ChatMessage> messages = [];
+
+//   final TextEditingController messageController = TextEditingController();
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     print("WEBSOCKET PAGE INIT");
+//     print("Chat sayfası açıldı");
+
+//     channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080"));
+
+//     print("WebSocket oluşturuldu");
+
+//     channel.stream.listen(
+//       (message) {
+//         print("SUNUCUDAN GELDİ: $message");
+
+//         final data = jsonDecode(message);
+
+//         if (data["type"] == "chat") {
+//           setState(() {
+//             messages = (data["messages"] as List)
+//                 .map((e) => ChatMessage.fromJson(e))
+//                 .toList();
+//           });
+//         }
+//       },
+
+//       onError: (error) {
+//         print("WEBSOCKET HATASI: $error");
+//       },
+
+//       onDone: () {
+//         print("WEBSOCKET KAPANDI");
+//       },
+//     );
+//   }
+
+//   @override
+//   void dispose() {
+//     print("WEBSOCKET PAGE DISPOSE");
+//     channel.sink.close();
+//     messageController.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     final colorScheme = theme.colorScheme;
+
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text(
+//           "Mesajlar",
+//           style: theme.textTheme.titleLarge?.copyWith(
+//             color: AppTheme.white,
+//             fontWeight: AppTheme.bold,
+//           ),
+//         ),
+//         centerTitle: true,
+//       ),
+
+//       body: Column(
+//         children: [
+//           Expanded(
+//             child: ListView(
+//               padding: const EdgeInsets.all(AppTheme.pagePadding),
+//               children: messages.isEmpty
+//                   ? [
+//                       Center(
+//                         child: Text(
+//                           "Henüz mesaj yok.",
+//                           style: theme.textTheme.bodyMedium,
+//                         ),
+//                       ),
+//                     ]
+//                   : messages.map((msg) {
+//                       return Padding(
+//                         padding: const EdgeInsets.only(
+//                           bottom: AppTheme.itemSpacing,
+//                         ),
+
+//                         child: Column(
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+
+//                           children: [
+//                             Text(
+//                               msg.user,
+//                               style: theme.textTheme.bodyMedium?.copyWith(
+//                                 fontWeight: AppTheme.bold,
+//                                 color: colorScheme.primary,
+//                               ),
+//                             ),
+
+//                             Container(
+//                               margin: const EdgeInsets.only(
+//                                 top: 4,
+//                               ), //mesaj kutusu aralık ve boyutları
+//                               padding: const EdgeInsets.all(
+//                                 AppTheme.cardPadding,
+//                               ),
+
+//                               decoration: BoxDecoration(
+//                                 //mesaj kutusu renkleri
+//                                 color: colorScheme.surface,
+//                                 borderRadius: BorderRadius.circular(
+//                                   AppTheme.radiusMedium,
+//                                 ),
+//                                 border: Border.all(
+//                                   color: colorScheme.primary.withValues(
+//                                     alpha: 0.15,
+//                                   ),
+//                                 ),
+//                               ),
+
+//                               child: Text(
+//                                 msg.message,
+//                                 style: theme.textTheme.bodyLarge,
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       );
+//                     }).toList(),
+//             ),
+//           ),
+
+//           Divider(
+//             height: 1,
+//             color: colorScheme.onSurface.withValues(alpha: 0.1),
+//           ),
+
+//           Padding(
+//             padding: const EdgeInsets.all(12),
+
+//             child: Row(
+//               children: [
+//                 Expanded(
+//                   child: TextField(
+//                     controller: messageController,
+
+//                     cursorColor: colorScheme.primary,
+
+//                     decoration: InputDecoration(hintText: "Mesaj yaz..."),
+//                   ),
+//                 ),
+
+//                 const SizedBox(width: 10),
+
+//                 Container(
+//                   decoration: BoxDecoration(
+//                     color: colorScheme.primary,
+//                     shape: BoxShape.circle,
+//                   ),
+
+//                   child: IconButton(
+//                     onPressed: () {
+//                       if (messageController.text.trim().isEmpty) {
+//                         return;
+//                       }
+
+//                       final chat = {
+//                         "type": "chat",
+//                         "user": widget.name,
+//                         "message": messageController.text.trim(),
+//                       };
+
+//                       channel.sink.add(jsonEncode(chat));
+
+//                       messageController.clear();
+//                     },
+//                     icon: const Icon(Icons.send, color: AppTheme.grey100),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 import 'dart:convert';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -5,44 +211,34 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../chat/chat_message.dart';
 
 import 'package:flutter/material.dart';
+import '../themes/app_theme.dart'; 
 
 class WebSocketPage extends StatefulWidget {
-  
   final String name;
-  
-  const WebSocketPage({
-    super.key,
-    required this.name});
+
+  const WebSocketPage({super.key, required this.name});
 
   @override
   State<WebSocketPage> createState() => _WebSocketPageState();
-
 }
 
 class _WebSocketPageState extends State<WebSocketPage> {
-
   late WebSocketChannel channel;
-
   List<ChatMessage> messages = [];
-
   final TextEditingController messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController(); // Otomatik kaydırma için
 
   @override
   void initState() {
     super.initState();
     print("WEBSOCKET PAGE INIT");
-    print("Chat sayfası açıldı");
 
     channel = WebSocketChannel.connect(
       Uri.parse("ws://localhost:8080"),
     );
 
-    print("WebSocket oluşturuldu");
-
     channel.stream.listen(
       (message) {
-        print("SUNUCUDAN GELDİ: $message");
-
         final data = jsonDecode(message);
 
         if (data["type"] == "chat") {
@@ -51,13 +247,13 @@ class _WebSocketPageState extends State<WebSocketPage> {
                 .map((e) => ChatMessage.fromJson(e))
                 .toList();
           });
+          // Yeni mesaj gelince en alta kaydır
+          Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
         }
       },
-
       onError: (error) {
         print("WEBSOCKET HATASI: $error");
       },
-
       onDone: () {
         print("WEBSOCKET KAPANDI");
       },
@@ -66,168 +262,252 @@ class _WebSocketPageState extends State<WebSocketPage> {
 
   @override
   void dispose() {
-    print("WEBSOCKET PAGE DISPOSE");
     channel.sink.close();
     messageController.dispose();
+    _scrollController.dispose(); // Dispose etmeyi unutma
     super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _sendMessage() {
+    if (messageController.text.trim().isEmpty) {
+      return;
+    }
+
+    final chat = {
+      "type": "chat",
+      "user": widget.name,
+      "message": messageController.text.trim(),
+    };
+
+    channel.sink.add(jsonEncode(chat));
+    messageController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
+    return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Mesajlar",
-          style: TextStyle(
-            color:Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Column(
+          children: [
+            Text(
+              "Sohbet Odası",
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: AppTheme.white,
+                fontWeight: AppTheme.bold,
+              ),
+            ),
+            Text(
+              "Canlı Bağlantı",
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppTheme.white.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
         ),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(175, 9, 55, 45),
-        elevation: 6,
       ),
-
       body: Column(
-
         children: [
-
+          // Mesaj Listesi Alanı
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: messages.isEmpty
-                  ? [
-                      const Center(
-                        child: Text("Henüz mesaj yok."),
-                      )
-                    ]
-                  : messages.map((msg) {
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
-                          children: [
-
-                            Text(
-                              msg.user,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            Container(
-                              margin: const EdgeInsets.only(top: 4), //mesaj kutusu aralık ve boyutları
-                              padding: const EdgeInsets.all(12),
-
-                              decoration: BoxDecoration( //mesaj kutusu renkleri
-                                color: const Color.fromARGB(55, 48, 109, 89),
-                                borderRadius: BorderRadius.circular(15),
-                                
-                              ),
-
-                              child: Text(msg.message),
-                            ),
-
-                          ],
-                        ),
-                      );
-
-                    }).toList(),
-            ),
-          ),
-
-          const Divider(height: 1),
-
-          Padding(
-            padding: const EdgeInsets.all(12),
-
-            child: Row(
-
-              children: [
-
-                Expanded(
-
-                  child: TextField(
-                    controller: messageController,
-
-                    cursorColor: const Color(0xFF496860),
-
-                    decoration: InputDecoration(
-
-                      hintText: "Mesaj yaz...",
-
-                      hintStyle: const TextStyle(
-                        color: Colors.grey,
-                      ),
-
-                      filled: true,
-                      fillColor: Colors.white,
-
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 15,
-                      ),
-
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(
-                          color: Color.fromARGB(123, 35, 33, 5),
-                          width: 2,
-                        ),
-                      ),
-
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(
-                          color: Color.fromARGB(175, 9, 55, 45),
-                          width: 3,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(175, 9, 55, 45),
-                    shape: BoxShape.circle,
-                  ),
-
-                  child: IconButton(
-                    onPressed: () {
-
-                      if (messageController.text.trim().isEmpty) {
-                        return;
-                      }
-
-                      final chat = {
-                        "type": "chat",
-                        "user": widget.name,
-                        "message": messageController.text.trim(),
-                      };
-
-                      channel.sink.add(jsonEncode(chat));
-
-                      messageController.clear();
+            child: messages.isEmpty
+                ? _buildEmptyState(theme)
+                : ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(AppTheme.pagePadding),
+                    itemCount: messages.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: AppTheme.itemSpacing),
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      final isMe = msg.user == widget.name; // Mesaj benden mi?
+                      return _buildMessageBubble(msg, isMe, theme, colorScheme);
                     },
-                    icon: const Icon(
-                      Icons.send,
-                      color: Colors.white,
-                    ),
                   ),
-                ),
+          ),
 
-              ],
+          // Mesaj Giriş Alanı (Alt Kısım)
+          _buildMessageInputArea(theme, colorScheme, isDark),
+        ],
+      ),
+    );
+  }
+
+  // Mesaj Yoksa Gösterilecek Alan
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 80,
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Henüz mesaj yok.\nİlk mesajı sen yaz!",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.textTheme.bodyMedium?.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Modern Mesaj Balonu Tasarımı
+  Widget _buildMessageBubble(
+      ChatMessage msg, bool isMe, ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment:
+          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        // Başkasının mesajıysa kullanıcı adını göster
+        if (!isMe)
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 4),
+            child: Text(
+              msg.user,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: AppTheme.bold,
+                color: colorScheme.primary,
+              ),
             ),
           ),
 
+        // Balonun kendisi
+        Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75, // Ekranın %75'i
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.cardPadding,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            // Senin mesajın Mor, başkasınınki Surface (Gri/Beyaz)
+            color: isMe ? colorScheme.primary : colorScheme.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(AppTheme.radiusMedium),
+              topRight: const Radius.circular(AppTheme.radiusMedium),
+              bottomLeft: Radius.circular(isMe ? AppTheme.radiusMedium : 0), // Kuyruk efekti
+              bottomRight: Radius.circular(isMe ? 0 : AppTheme.radiusMedium), // Kuyruk efekti
+            ),
+            // Başkasının mesajına hafif gölge/kenarlık
+            border: isMe
+                ? null
+                : Border.all(color: colorScheme.primary.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            msg.message,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              // Senin mesajının metni beyaz, diğerleri temanın metin rengi
+              color: isMe ? AppTheme.white : colorScheme.onSurface,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Modern Mesaj Giriş Alanı Tasarımı
+  Widget _buildMessageInputArea(
+      ThemeData theme, ColorScheme colorScheme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surface : AppTheme.lightSurface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            // Metin Giriş Kutusu
+            Expanded(
+              child: TextField(
+                controller: messageController,
+                cursorColor: colorScheme.primary,
+                style: theme.textTheme.bodyLarge,
+                decoration: InputDecoration(
+                  hintText: "Mesajınızı buraya yazın...",
+                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? AppTheme.grey500 : AppTheme.grey600,
+                  ),
+                  filled: true,
+                  // Giriş kutusunun arka planı
+                  fillColor: isDark
+                      ? colorScheme.onSecondary
+                      : AppTheme.grey100,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  // Bu sayfaya özel tam yuvarlak kenarlıklar
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none, // Kenarlık yok
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                textCapitalization: TextCapitalization.sentences, // Cümle başı büyük harf
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Gönder Butonu (Yuvarlak)
+            Material(
+              color: colorScheme.primary,
+              shape: const CircleBorder(),
+              elevation: 3,
+              shadowColor: colorScheme.primary.withValues(alpha: 0.4),
+              child: IconButton(
+                onPressed: _sendMessage,
+                icon: const Icon(
+                  Icons.send_rounded, // Daha modern bir gönder ikonu
+                  color: AppTheme.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

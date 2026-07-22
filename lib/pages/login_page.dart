@@ -5,7 +5,6 @@ import 'register_page.dart';
 import '../database/database_helper.dart';
 import '../themes/app_theme.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -13,84 +12,61 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> { 
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>(); //formu kontrol etmek icin
 
-  final TextEditingController usernameController = //textfield tek basına tazıyı saklamaz, controller saklar ve sürekli güncellenir
+  final TextEditingController
+  usernameController = //textfield tek basına tazıyı saklamaz, controller saklar ve sürekli güncellenir
       TextEditingController();
 
-  final TextEditingController passwordController = 
-      TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
-  void initState() { //bir kere çalisiyor, isLoggedIn = true ise otomatik homepage acicak
+  void initState() {
+    //bir kere çalisiyor, isLoggedIn = true ise otomatik homepage acicak
     super.initState();
     checkLogin();
   }
 
-  // Future<void> checkLogin() async {
-  //   final prefs = await SharedPreferences.getInstance();    //telefonun local hafızasını açıyor
-
-  //   bool? isLoggedIn = prefs.getBool("isLoggedIn");
-
-  //   String? username = prefs.getString("username");
-
-  //   if (username != null && email != null) { //name!=null -> kullanici daha önce giris yapmis
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       Navigator.pushReplacement(      //daha önce giris yapmissa login sayfasını siliyor homepage acılıyor
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (_) => HomePage(
-  //             name: name,
-  //             email: email,
-  //           ),
-  //         ),
-  //       );
-  //     });
-  //   }
-  // }
-
   Future<void> checkLogin() async {
+    final prefs = await SharedPreferences.getInstance();
 
-    final prefs = await SharedPreferences.getInstance(); 
-
-    bool isLoggedIn =
-        prefs.getBool("isLoggedIn") ?? false;
+    bool isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
 
     if (!isLoggedIn) return;
 
-    //simdilik otomatik giris yapmiyo
+    String name = prefs.getString("fullName") ?? "";
 
+    String email = prefs.getString("email") ?? "";
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.pushReplacement(
+        context,
+
+        MaterialPageRoute(
+          builder: (_) => HomePage(name: name, email: email),
+        ),
+      );
+    });
   }
 
-  Future<void> login() async { 
+  Future<void> login() async {
+    if (!_formKey.currentState!.validate())
+      return; //tüm validatorları tek tek çağiriyor, hepsi doğruysa true dönüyor
 
-    if (!_formKey.currentState!.validate()) return; //tüm validatorları tek tek çağiriyor, hepsi doğruysa true dönüyor
-
-    final user = await DatabaseHelper.instance.login( //sqlite b ağlantısı (database helper y)
-
+    final user = await DatabaseHelper.instance.login(
+      //sqlite b ağlantısı (database helper y)
       usernameController.text.trim(),
 
       passwordController.text.trim(),
-
     );
 
     if (user == null) {
-
       ScaffoldMessenger.of(context).showSnackBar(
-
-        const SnackBar(
-
-          content: Text(
-            "Kullanıcı adı veya şifre yanlış.",
-          ),
-
-        ),
-
+        const SnackBar(content: Text("Kullanıcı adı veya şifre yanlış.")),
       );
 
       return;
-
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -99,36 +75,30 @@ class _LoginPageState extends State<LoginPage> {
 
     await prefs.setInt("userId", user.id!);
 
-    await prefs.setString(
-      "username",
-      user.username,
-    );
+    await prefs.setString("username", user.username);
+
+    await prefs.setString("fullName", user.fullName);
+
+    await prefs.setString("email", user.email);
 
     if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => HomePage(
-          name: user.fullName,
-          email: user.email,
-        ),
+        builder: (_) => HomePage(name: user.fullName, email: user.email),
       ),
     );
-
   }
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-
-          Positioned(        //kare
+          Positioned(
+            //kare
             top: 0,
             left: 0,
             right: 0,
@@ -136,93 +106,72 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Container(
                   height: 600,
-                  color: Theme.of(context).colorScheme.primary,
-                
+                  color: AppTheme.loginPageBG, // arkaplandaki yeşil renk
                 ),
+                Positioned(
+                  top: 300,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 520,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface, //arkaplan beyaz renk
+                      borderRadius: BorderRadius.circular(50),
+                      boxShadow: [
+                        BoxShadow(
+                          //TODO: color: AppTheme.buttonColor,
 
-            Positioned(
-              top: 300,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 520,
-                decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(40),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.shadowColor,
-                      //color: Colors.black12,
-                      blurRadius: 15,
-                      offset: Offset(0, 5),
+                          //  blurRadius: AppTheme.shadowBlur,
+                          // offset: AppTheme.shadowOffset,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-
-
-
               ],
             ),
           ),
-        
-
-
-
-
 
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppTheme.pagePadding),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                        const SizedBox(height: 280),
+                    SizedBox(height: 20),
 
-                        const SizedBox(height: 0),
-                        Text(
-                          "Giriş Yapın",
-                          style: Theme.of(context).textTheme.headlineLarge,
-                        ),
-                        
-                        const SizedBox(height: 20),
-                        
+                    const SizedBox(height: 260),
+                    Text(
+                      "Giriş Yapın",
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
 
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Devam etmek için bilgilerinizi girin.",
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        
-                      
-                        const SizedBox(height: 20),
-                      
+                    const SizedBox(height: 40),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Devam etmek için bilgilerinizi girin.",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     TextFormField(
                       controller: usernameController,
-                      cursorColor: Theme.of(context).colorScheme.secondary,
-                      //cursorColor: const Color.fromARGB(255, 83, 5, 5),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: "Kullanıcı Adı",
-                        prefixIcon: const Icon(Icons.person),
-                        filled: true,
-                        fillColor: const Color.fromARGB(10, 9, 55, 45),
-
-
-
+                        prefixIcon: Icon(Icons.person),
                       ),
                       validator: (value) {
-
                         if (value == null || value.isEmpty) {
                           return "Kullanıcı adı giriniz.";
                         }
-
                         return null;
-
                       },
                     ),
 
@@ -230,25 +179,13 @@ class _LoginPageState extends State<LoginPage> {
 
                     TextFormField(
                       controller: passwordController,
+
                       obscureText: true,
-                      //cursorColor: const Color.fromARGB(255, 9, 55, 45),
-                      cursorColor: Theme.of(context).colorScheme.secondary,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-           
+                      decoration: const InputDecoration(
                         labelText: "Şifre",
-                        // prefixIcon: const Icon(
-                        //   Icons.email,
-                        //   color: Color.fromARGB(80, 9, 55, 45)
-                        //   ),
-                        prefixIcon: const Icon(Icons.lock),
-                        filled: true,
-                        fillColor: const Color.fromARGB(10, 9, 55, 45),
-
-
+                        prefixIcon: Icon(Icons.lock),
                       ),
                       validator: (value) {
-
                         if (value == null || value.isEmpty) {
                           return "Şifre giriniz.";
                         }
@@ -266,7 +203,7 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(
                       width: double.infinity,
                       height: 55,
-                      
+
                       child: ElevatedButton(
                         onPressed: () async {
                           await login();
@@ -280,8 +217,10 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-
-                        const Text("Hesabın yok mu?"),
+                        Text(
+                          "Hesabın yok mu?",
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
 
                         TextButton(
                           onPressed: () {
@@ -293,13 +232,11 @@ class _LoginPageState extends State<LoginPage> {
                             );
                           },
                           child: const Text("Kayıt Ol"),
-
                         ),
-
                       ],
                     ),
-                  ]
-                )
+                  ],
+                ),
               ),
             ),
           ),

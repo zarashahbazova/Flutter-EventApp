@@ -1,22 +1,17 @@
 import 'dart:convert';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:staj_test1/themes/app_theme.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import '../events/event.dart';
 import 'profile.dart';
 import 'websocket_page.dart';
-import '../events/event.dart';
-import '../pages/login_page.dart';
-
 
 class HomePage extends StatefulWidget {
   final String name;
   final String email;
 
-  const HomePage({
-    super.key,
-    required this.name,
-    required this.email,
-  });
+  const HomePage({super.key, required this.name, required this.email});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -24,332 +19,259 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-
   List<Event> events = [];
-
   late WebSocketChannel channel;
 
-  bool get isAdmin => widget.email == "admin@staj.com";
+  bool get isAdmin => widget.email == "zarifesahbazz@gmail.com";
   bool serverConnected = false;
 
-@override
-void initState() {
-  super.initState();
+  @override
+  void initState() {
+    super.initState();
+    connectWebSocket();
 
-  connectWebSocket();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkLocationDialog();
+    });
+  }
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-   showLocationDialog();
-  });
-}
+  Future<void> showLocationDialog() async {
+    final theme = Theme.of(context);
 
-Future<void> showLocationDialog() async {
-  showModalBottomSheet(
-    context: context,
-    isDismissible: false,
-    enableDrag: false,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(25),
-      ),
-    ),
-    builder: (context) {
-      return Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-
-            const Icon(
-              Icons.location_on,
-              color: Color.fromARGB(190, 9, 55, 45),
-              size: 60,
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Konum Erişimi",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            const Text(
-              "Yakınınızdaki etkinlikleri gösterebilmek için konum bilginize erişmemize izin vermeniz gerekiyor.",
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 30),
-
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(200, 9, 55, 45),
-                  foregroundColor: Colors.white,
-                ),
-              
-                onPressed: () async {
-
-                  Navigator.pop(context);
-
-                  PermissionStatus status =
-                      await Permission.location.request();
-
-                  if (status.isGranted) {
-                    print("Konum izni verildi.");
-                  }
-
-                },
-                child: const Text("İzin Ver"),
-              ),
-            ),
-
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color.fromARGB(255, 9, 55, 45)
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Daha Sonra"),
-            ),
-
-            const SizedBox(height: 15),
-          ],
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.cardRadius),
         ),
-      );
-    },
-  );
-}
-void showAddEventDialog() {
-
-  final titleController = TextEditingController();
-  final timeController = TextEditingController();
-  final locationController = TextEditingController();
-  final dateController = TextEditingController();
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(25),
       ),
-    ),
-    builder: (context) {
-
-      return Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        ),
-        child: SingleChildScrollView(
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(AppTheme.pagePadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
-              const Text(
-                "Etkinlik Ekle",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              Icon(
+                Icons.location_on,
+                color: theme.colorScheme.primary,
+                size: 60,
               ),
-
               const SizedBox(height: 20),
-
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: "Etkinlik Adı",
-                ),
-              ),
-
-              TextField(
-                controller: dateController,
-                decoration: const InputDecoration(
-                  labelText: "Etkinlik Tarihi",
-                ),
-              ),
+              Text("Konum Erişimi", style: theme.textTheme.titleLarge),
               const SizedBox(height: 15),
-
-              TextField(
-                controller: timeController,
-                decoration: const InputDecoration(
-                  labelText: "Saat",
-                ),
+              Text(
+                "Yakınınızdaki etkinlikleri gösterebilmek için konum bilginize erişmemize izin vermeniz gerekiyor.",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
               ),
-
-              const SizedBox(height: 15),
-
-              TextField(
-                controller: locationController,
-                decoration: const InputDecoration(
-                  labelText: "Konum",
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
+              const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-
-                    if (titleController.text.isEmpty ||
-                        dateController.text.isEmpty ||
-                        timeController.text.isEmpty ||
-                        locationController.text.isEmpty) {
-                 
-                      return;
-                    }
-
-                    final event = {
-                      "type": "add",
-                      "title": titleController.text,
-                      "time": timeController.text,
-                      "location": locationController.text,
-                      "date": dateController.text,
-                    };
-
-                    if (serverConnected) {
-                      channel.sink.add(jsonEncode(event));
-                    } else {
-                      setState(() {
-                        events.add(
-                          Event(
-                            id: DateTime.now().millisecondsSinceEpoch,
-                            title: titleController.text,
-                            date: dateController.text,
-                            time: timeController.text,
-                            location: locationController.text,
-                          ),
-                        );
-                      });
-                    }
-
+                child: ElevatedButton(
+                  onPressed: () async {
                     Navigator.pop(context);
-
+                    PermissionStatus status = await Permission.location
+                        .request();
+                    if (status.isGranted) {
+                      debugPrint("Konum izni verildi.");
+                    }
                   },
-                  child: const Text("Kaydet"),
+                  child: const Text("İzin Ver"),
                 ),
               ),
-
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Daha Sonra"),
+              ),
+              const SizedBox(height: 15),
             ],
           ),
-        ),
-      );
-
-    },
-  );
-}
-
-void showEventMenu(Event event) {
-
-  showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(25),
-      ),
-    ),
-    builder: (context) {
-
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text("Düzenle"),
-              onTap: () {
-                Navigator.pop(context);
-
-                // Düzenleme kısmını birazdan yapacağız.
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(
-                Icons.delete,
-                color: Colors.red,
-              ),
-              title: const Text(
-                "Sil",
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-
-                Navigator.pop(context);
-
-                channel.sink.add(
-                  jsonEncode({
-                    "type": "delete",
-                    "id": event.id,
-                  }),
-                );
-
-              },
-            ),
-
-            const SizedBox(height: 10),
-
-          ],
-        ),
-      );
-
-    },
-  );
-
-}
-
-void connectWebSocket() {
-  try {
-    channel = WebSocketChannel.connect(
-      Uri.parse("ws://localhost:8080"),
-    );
-
-    serverConnected = true;
-
-    channel.stream.listen(
-      (message) {
-
-        final data = jsonDecode(message);
-
-        if (data["type"] == "events") {
-          setState(() {
-            events = (data["events"] as List)
-                .map((e) => Event.fromJson(e))
-                .toList();
-          });
-        }
-      },
-          
-      onError: (error) {
-        serverConnected = false;
-        debugPrint("WebSocket Hatası: $error");
-      },
-
-      onDone: () {
-        serverConnected = false;
-        debugPrint("Websocket bağlantısı kapandı");
+        );
       },
     );
-    }
-    catch (e) {
-        debugPrint("Bağlantı kurulamadı: $e");
-    }
   }
 
+  void showAddEventDialog() {
+    final titleController = TextEditingController();
+    final timeController = TextEditingController();
+    final locationController = TextEditingController();
+    final dateController = TextEditingController();
+    final theme = Theme.of(context);
 
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.cardRadius),
+        ),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: AppTheme.pagePadding,
+            right: AppTheme.pagePadding,
+            top: AppTheme.pagePadding,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom + AppTheme.pagePadding,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Etkinlik Ekle", style: theme.textTheme.titleLarge),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: "Etkinlik Adı"),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: dateController,
+                  decoration: const InputDecoration(
+                    labelText: "Etkinlik Tarihi",
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: timeController,
+                  decoration: const InputDecoration(labelText: "Saat"),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: locationController,
+                  decoration: const InputDecoration(labelText: "Konum"),
+                ),
+                const SizedBox(height: 25),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (titleController.text.isEmpty ||
+                          dateController.text.isEmpty ||
+                          timeController.text.isEmpty ||
+                          locationController.text.isEmpty) {
+                        return;
+                      }
+
+                      final event = {
+                        "type": "add",
+                        "title": titleController.text,
+                        "time": timeController.text,
+                        "location": locationController.text,
+                        "date": dateController.text,
+                      };
+
+                      if (serverConnected) {
+                        channel.sink.add(jsonEncode(event));
+                      } else {
+                        setState(() {
+                          events.add(
+                            Event(
+                              id: DateTime.now().millisecondsSinceEpoch,
+                              title: titleController.text,
+                              date: dateController.text,
+                              time: timeController.text,
+                              location: locationController.text,
+                            ),
+                          );
+                        });
+                      }
+
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Kaydet"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showEventMenu(Event event) {
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.cardRadius),
+        ),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit, color: theme.colorScheme.primary),
+                title: Text("Düzenle",
+                style:theme.textTheme.bodyMedium),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Düzenleme mantığı
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: theme.colorScheme.error),
+                title: Text(
+                  "Sil",
+                  style: theme.textTheme.bodyMedium!.copyWith(
+                    color: AppTheme.error,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  channel.sink.add(
+                    jsonEncode({"type": "delete", "id": event.id}),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void connectWebSocket() {
+    try {
+      channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080"));
+      serverConnected = true;
+
+      channel.stream.listen(
+        (message) {
+          final data = jsonDecode(message);
+          if (data["type"] == "events") {
+            setState(() {
+              events = (data["events"] as List)
+                  .map((e) => Event.fromJson(e))
+                  .toList();
+            });
+          }
+        },
+        onError: (error) {
+          serverConnected = false;
+          debugPrint("WebSocket Hatası: $error");
+        },
+        onDone: () {
+          serverConnected = false;
+          debugPrint("Websocket bağlantısı kapandı");
+        },
+      );
+    } catch (e) {
+      debugPrint("Bağlantı kurulamadı: $e");
+    }
+  }
 
   String getGreeting() {
     final hour = DateTime.now().hour;
@@ -360,25 +282,39 @@ void connectWebSocket() {
 
   String getDate() {
     const days = [
-      "Pazartesi","Salı","Çarşamba","Perşembe",
-      "Cuma","Cumartesi","Pazar"
+      "Pazartesi",
+      "Salı",
+      "Çarşamba",
+      "Perşembe",
+      "Cuma",
+      "Cumartesi",
+      "Pazar",
     ];
     const months = [
-      "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
-      "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
+      "Ocak",
+      "Şubat",
+      "Mart",
+      "Nisan",
+      "Mayıs",
+      "Haziran",
+      "Temmuz",
+      "Ağustos",
+      "Eylül",
+      "Ekim",
+      "Kasım",
+      "Aralık",
     ];
 
     final now = DateTime.now();
     return "${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}";
   }
 
-
-
-
   Widget homeScreen() {
+    final theme = Theme.of(context);
+
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppTheme.pagePadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -389,288 +325,179 @@ void connectWebSocket() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "${getGreeting()}, \n${widget.name} ",
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        "${getGreeting()},\n${widget.name}",
+                        style: theme.textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        getDate(),
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 16,
-                        ),
-                      ),
+                      Text(getDate(), style: theme.textTheme.bodyMedium),
                     ],
                   ),
                 ),
-
-                // IconButton(
-                //     hoverColor: Colors.transparent,
-                //     highlightColor: const Color.fromARGB(10, 111, 27, 27),
-                //     splashColor: Colors.transparent,
-                //   icon: const Icon(Icons.notifications_none, size: 30),
-                //   color: Color.fromARGB(255, 9, 55, 45),
-                //   onPressed: () {},
-                // )
-
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
                     if (isAdmin)
                       IconButton(
                         icon: const Icon(Icons.add_circle_outline),
-                        color: const Color.fromARGB(255, 9, 55, 45),
-                        onPressed: () {
-
-                          showAddEventDialog();
-
-                        },
+                        color: theme.colorScheme.primary,
+                        iconSize: 28,
+                        onPressed: showAddEventDialog,
                       ),
-
                     IconButton(
                       icon: const Icon(Icons.notifications_none),
-                      color: const Color.fromARGB(255, 9, 55, 45),
+                      color: theme.colorScheme.primary,
+                      iconSize: 28,
                       onPressed: () {},
                     ),
-
                   ],
                 ),
-
               ],
             ),
+            const SizedBox(height: 30),
 
-            const SizedBox(height: 40),
-            Container(
-              width: double.infinity,
-
-              margin: const EdgeInsets.symmetric(
-                horizontal: 10,
-              ),
-
-              padding: const EdgeInsets.all(20),
-
-              decoration: BoxDecoration(
-                color: Colors.white,
-
-                borderRadius: BorderRadius.circular(30),
-
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 12,
-                    offset: Offset(0,5),
-                  )
-                ],
-              ),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  const Text(
-                    "Etkinlikler",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  if(events.isEmpty)
-
-                    const Center(
-                      child: Text("Bugün etkinlik yok."),
-                    )
-
-                  else
-
-                    ...events.map((event){
-
-                      return GestureDetector(
-
-                        onLongPress: () {
-                          if (isAdmin) {
-                            showEventMenu(event);
-                          }
-                        },
-
-                      
-
-                        child: Container(
-
-                          width: double.infinity,  
-
-                          margin: const EdgeInsets.only(bottom:15),
-
-                          padding: const EdgeInsets.all(16),
-
-                          decoration: BoxDecoration(
-
-                            color: const Color(0xFFEAF6F2),
-
-                            borderRadius: BorderRadius.circular(20),
-
+            // Etkinlikler Kartı
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.cardPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Etkinlikler", style: theme.textTheme.titleLarge),
+                    const SizedBox(height: 20),
+                    if (events.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            "Bugün etkinlik yok.",
+                            style: theme.textTheme.bodyMedium,
                           ),
-
-                          child: Column(
-
-                            crossAxisAlignment: CrossAxisAlignment.start,
-
-                            children: [
-
-                              Text(
-                                "${event.title}",
-                                style: const TextStyle(
-                                  fontSize:18,
-                                  fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    else
+                      ...events.map((event) {
+                        return GestureDetector(
+                          onLongPress: () {
+                            if (isAdmin) {
+                              showEventMenu(event);
+                            }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(
+                              bottom: AppTheme.itemSpacing,
+                            ),
+                            padding: const EdgeInsets.all(AppTheme.cardPadding),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusMedium,
+                              ),
+                              border: Border.all(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.15,
                                 ),
                               ),
-
-                              const SizedBox(height:8),
-
-                              Text(
-                                "${event.time}",
-                              ),
-
-                              const SizedBox(height:5),
-
-                              Text(
-                                "${event.location}",
-                              ),
-
-
-
-
-                            ],
-
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  event.title,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: AppTheme.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 16,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      event.time,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on_outlined,
+                                      size: 16,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      event.location,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-
-                    
-                        )
-
-
                         );
-
-                    }),
-
-                ],
+                      }),
+                  ],
+                ),
               ),
-            )
-
-          
+            ),
           ],
         ),
       ),
     );
   }
 
-@override
-void dispose() {
-  channel.sink.close();
-  super.dispose();
-}
-
+  @override
+  void dispose() {
+    channel.sink.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-  final pages = [
-    homeScreen(),
-
-    WebSocketPage(
-      name: widget.name,
-    ),
-
-    ProfileScreen(
-      name: widget.name,
-      email: widget.email,
-    ),
-  ];
+    final pages = [
+      homeScreen(),
+      WebSocketPage(name: widget.name),
+      ProfileScreen(name: widget.name, email: widget.email),
+    ];
 
     return Scaffold(
       body: pages[_currentIndex],
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          iconTheme: WidgetStateProperty.resolveWith(
-            (states) {
-              if (states.contains(WidgetState.selected)) {
-                return const IconThemeData(
-                  color: Color.fromARGB(255, 9, 55, 45),
-                );
-              }
-
-              return const IconThemeData(
-                color: Color.fromARGB(255, 9, 48, 48),
-              );
-            },
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: "Ana Sayfa",
           ),
-        ),
-        child: NavigationBar(
-
-          backgroundColor: Colors.white,
-
-          indicatorColor: const Color.fromARGB(40, 9, 55, 45),
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() => _currentIndex = index);
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: "Ana Sayfa",
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.grid_view_outlined),
-              selectedIcon: Icon(Icons.grid_view),
-              label: "Mesajlar",
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: "Profil",
-            ),
-          ]
-        ),
+          NavigationDestination(
+            icon: Icon(Icons.message_outlined),
+            selectedIcon: Icon(Icons.message),
+            label: "Mesajlar",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: "Profil",
+          ),
+        ],
       ),
     );
   }
-}
-
-// ignore: unused_element
-class _QuickCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-
-  const _QuickCard({
-    required this.icon,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-          hoverColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          highlightColor: const Color.fromARGB(0, 143, 46, 46),
-        onTap: () {},
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 42),
-            const SizedBox(height: 12),
-            Text(title),
-          ],
-        ),
-      ),
-    );
-  }
-
+  
+  void checkLocationDialog() {}
 }

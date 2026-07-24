@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:staj_test1/pages/camera_page.dart';
 import 'package:staj_test1/themes/app_theme.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../events/event.dart';
@@ -22,13 +23,13 @@ class _HomePageState extends State<HomePage> {
   List<Event> events = [];
   WebSocketChannel? channel;
 
-  bool get isAdmin => widget.email == "zarifesahbazz@gmail.com";
+  bool get isAdmin => widget.email == "zarife@gmail.com";
   bool serverConnected = false;
 
   @override
   void initState() {
     super.initState();
-
+   
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showLocationDialog();
     });
@@ -117,9 +118,7 @@ class _HomePageState extends State<HomePage> {
             right: AppTheme.pagePadding,
             top: AppTheme.pagePadding,
             bottom:
-                MediaQuery.of(context).viewInsets.bottom +
-                AppTheme
-                    .pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
+                MediaQuery.of(context).viewInsets.bottom + AppTheme.pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -250,6 +249,7 @@ class _HomePageState extends State<HomePage> {
 
       channel?.stream.listen(
         (message) {
+
           if (!mounted) return;
           final data = jsonDecode(message);
           if (data["type"] == "events") {
@@ -481,8 +481,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      homeScreen(),
       WebSocketPage(name: widget.name),
+      homeScreen(),
+      const CameraPage(),
       ProfileScreen(name: widget.name, email: widget.email),
     ];
 
@@ -498,14 +499,19 @@ class _HomePageState extends State<HomePage> {
         },
         destinations: const [
           NavigationDestination(
+            icon: Icon(Icons.message_outlined),
+            selectedIcon: Icon(Icons.message),
+            label: "Mesajlar",
+          ),
+          NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: "Ana Sayfa",
           ),
           NavigationDestination(
-            icon: Icon(Icons.message_outlined),
-            selectedIcon: Icon(Icons.message),
-            label: "Mesajlar",
+            icon: Icon(Icons.camera_alt_outlined),
+            selectedIcon: Icon(Icons.camera_alt),
+            label: "Kamera",
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

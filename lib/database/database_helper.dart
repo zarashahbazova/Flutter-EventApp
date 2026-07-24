@@ -79,7 +79,18 @@ password TEXT NOT NULL
 
     print(users);
   }
+  Future<void> resetDatabase() async {
+    final db = await database;
 
+    await db.close();
+
+    _database = null;
+
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, "users.db");
+
+    await deleteDatabase(path);
+  }
   Future<User?> login(String username, String password) async {
     await DatabaseHelper.instance.printUsers();
     final db = await instance.database;

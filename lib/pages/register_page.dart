@@ -77,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 validator: (v) {
                   if (v == null || v.trim().isEmpty)
                     return "Kullanıcı adı giriniz";
-                  if (v.length < 4) return "En az 4 karakter";
+                  if (v.length < 1) return "En az 1 karakter";
                   return null;
                 },
               ),
@@ -98,7 +98,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
                 decoration: deco("Şifre", Icons.lock),
                 validator: (v) =>
-                    v == null || v.length < 6 ? "Şifre en az 6 karakter" : null,
+                    v == null || v.length < 1 ? "Şifre en az 1 karakter" : null,
               ),
               const SizedBox(height: 16),
               TextFormField(

@@ -80,7 +80,7 @@ class AppTheme {
       error: error,
       onPrimary: white,
       onSecondary: white,
-      onSurface: black,
+      onSurface: Color.fromARGB(255, 227, 124, 124),
     ),
 
     // App Bar
@@ -228,10 +228,10 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: darkBackground,
-    primaryColor: primaryColor,
+    primaryColor: const Color.fromARGB(245, 173, 156, 196),
     colorScheme: const ColorScheme.dark(
-      primary: primaryColor,
-      secondary: accentColor,
+      primary:  Color.fromARGB(245, 113, 63, 184),
+      secondary: Color.fromARGB(255, 115, 74, 204),
       surface: darkSurface,
       error: error,
       onPrimary: white,
@@ -290,6 +290,7 @@ class AppTheme {
         fontWeight: regular,
         color: grey400,
       ),
+      
     ),
 
     // Input Decoration

@@ -23,6 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     //bir kere çalisiyor, isLoggedIn = true ise otomatik homepage acicak
     super.initState();
+    DatabaseHelper.instance.resetDatabase();
     checkLogin();
   }
 

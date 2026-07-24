@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
-
 import 'package:web_socket_channel/web_socket_channel.dart';
-
 import '../chat/chat_message.dart';
-
 import 'package:flutter/material.dart';
 import '../themes/app_theme.dart';
 
@@ -21,6 +18,8 @@ class WebSocketPage extends StatefulWidget {
 class _WebSocketPageState extends State<WebSocketPage> {
   WebSocketChannel? channel;
   StreamSubscription? _subscription;
+  bool blink = true;
+  Timer? blinkTimer;
   bool connected = false;
   bool loading = true;
   List<ChatMessage> messages = [];
@@ -28,10 +27,21 @@ class _WebSocketPageState extends State<WebSocketPage> {
   final ScrollController _scrollController =
       ScrollController(); // Otomatik kaydırma için
 
-  @override
-  void initState() {
-    print("INIT");
-    super.initState();
+      @override
+      void initState() {
+        print("INIT");
+        super.initState();
+        blinkTimer = Timer.periodic(
+          // yanip sönen nokta
+          const Duration(milliseconds: 500),
+          (_) {
+            if (!mounted) return;
+
+            setState(() {
+              blink = !blink;
+            });
+          },
+        );
 
     try {
       //hata yakalamak icin
@@ -61,8 +71,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
           });
 
       // ignore: unused_label
-      _subscription = 
-      channel!.stream.listen(
+      _subscription = channel!.stream.listen(
         (message) {
           if (!mounted) return;
 
@@ -105,6 +114,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
 
   @override
   void dispose() {
+    blinkTimer?.cancel();
     //sayfa uygulamadan kaldrılırken bi kere çalısır, kullandıgı tüm kaynakları temizletşr
     print("DISPOSE ");
     _subscription?.cancel();
@@ -170,12 +180,16 @@ class _WebSocketPageState extends State<WebSocketPage> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: connected ? Colors.green : Colors.red,
-                    shape: BoxShape.circle,
+                AnimatedOpacity(
+                  opacity: blink ? 1.0 : 0.2,
+                  duration: const Duration(seconds: 1),
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: connected ? Colors.green : Colors.red,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
 

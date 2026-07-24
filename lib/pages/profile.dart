@@ -97,7 +97,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Icons.camera_alt,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: const Text("Kamera"),
+                title: Text(
+                  "Kamera",
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black ),),
                 onTap: () {
                   Navigator.pop(context);
                   openCamera();
@@ -109,7 +111,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Icons.photo_library,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: const Text("Galeri"),
+                title: Text(
+                  "Galeri",
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black ),),
                 onTap: () {
                   Navigator.pop(context);
                   openGallery();

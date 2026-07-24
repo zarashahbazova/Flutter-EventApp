@@ -1,18 +1,25 @@
 import 'dart:io';
 import 'package:staj_test1/themes/app_theme.dart';
 import 'package:staj_test1/main.dart'; // main.dart dosyanı import et (themeNotifier için)
-
 import 'login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../database/database_helper.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String name;
   final String email;
+  final int userId;
 
-  const ProfileScreen({super.key, required this.name, required this.email});
+  const ProfileScreen({
+    super.key,
+    required this.userId,
+    required this.name,
+    required this.email,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -28,6 +35,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     loadProfileImage();
   }
 
+  Future<void> loadProfileImage() async {
+    final user = await DatabaseHelper.instance.getUserById(widget.userId);
+
+    if (user?.profileImage == null) return;
+
+    setState(() {
+      profileImage = File(user!.profileImage!);
+    });
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -40,48 +57,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> loadProfileImage() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String? imagePath = prefs.getString("profileImage");
-
-    if (imagePath != null) {
-      setState(() {
-        profileImage = File(imagePath);
-      });
-    }
-  }
-
   Future<void> openCamera() async {
     PermissionStatus status = await Permission.camera.request();
 
-    if (status.isGranted) {
-      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+    if (!status.isGranted) return;
 
-      if (image != null) {
-        setState(() {
-          profileImage = File(image.path);
-        });
-      }
-    }
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+    if (image == null) return;
+
+    final directory = await getApplicationDocumentsDirectory();
+
+    final String newPath = "${directory.path}/profile_${widget.userId}.jpg";
+
+    final File savedImage = await File(image.path).copy(newPath);
+
+    await DatabaseHelper.instance.updateProfileImage(
+      widget.userId,
+      savedImage.path,
+    );
+
+    setState(() {
+      profileImage = savedImage;
+    });
   }
 
+  // Future<void> openCamera() async {
+  //   PermissionStatus status = await Permission.camera.request();
+
+  //   if (status.isGranted) {
+  //     final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+  //     if (image != null) {
+  //       setState(() {
+  //         profileImage = File(image.path);
+  //       });
+  //     }
+  //   }
+  // }
+
+  // Future<void> openGallery() async {
+  //   print("Galeri butonuna basıldı");
+
+  //   final XFile? image = await picker.pickImage(
+  //     source: ImageSource.gallery,
+  //     );
+
+  //   print("Seçilen resim: $image");
+
+  //   if (image != null) {
+  //     final prefs = await SharedPreferences.getInstance();
+  //     await prefs.setString("profileImage", image.path);
+  //     setState(() {
+  //       profileImage = File(image.path);
+  //     });
+  //   } else {
+  //     print("İzin verilmedi.");
+  //   }
+  // }
   Future<void> openGallery() async {
     print("Galeri butonuna basıldı");
 
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
-    print("Seçilen resim: $image");
+    if (image == null) return;
 
-    if (image != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("profileImage", image.path);
-      setState(() {
-        profileImage = File(image.path);
-      });
-    } else {
-      print("İzin verilmedi.");
-    }
+    final directory = await getApplicationDocumentsDirectory();
+
+    final String newPath = "${directory.path}/profile_${widget.userId}.jpg";
+
+    final File savedImage = await File(image.path).copy(newPath);
+
+    await DatabaseHelper.instance.updateProfileImage(
+      widget.userId,
+      savedImage.path,
+    );
+
+    setState(() {
+      profileImage = savedImage;
+    });
   }
 
   Future<void> showPhotoOptions() async {
@@ -99,7 +153,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 title: Text(
                   "Kamera",
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black ),),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall!.copyWith(color: Colors.black),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   openCamera();
@@ -113,7 +170,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 title: Text(
                   "Galeri",
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black ),),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall!.copyWith(color: Colors.black),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   openGallery();
@@ -150,11 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ? FileImage(profileImage!)
                       : null,
                   child: profileImage == null
-                      ? Icon(
-                          Icons.person,
-                          size: 65,
-                          color: colorScheme.primary,
-                        )
+                      ? Icon(Icons.person, size: 65, color: colorScheme.primary)
                       : null,
                 ),
 
@@ -180,17 +236,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: AppTheme.itemSpacing),
 
-            Text(
-              widget.name,
-              style: theme.textTheme.headlineMedium,
-            ),
+            Text(widget.name, style: theme.textTheme.headlineMedium),
 
             const SizedBox(height: 8),
 
-            Text(
-              widget.email,
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(widget.email, style: theme.textTheme.bodyMedium),
 
             const SizedBox(height: 30),
 
@@ -229,8 +279,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   activeColor: colorScheme.primary,
                   onChanged: (bool value) {
                     // Tıklandığında main.dart içindeki global bildirimi güncelliyoruz
-                    themeNotifier.value =
-                        value ? ThemeMode.dark : ThemeMode.light;
+                    themeNotifier.value = value
+                        ? ThemeMode.dark
+                        : ThemeMode.light;
                   },
                 ),
               ),

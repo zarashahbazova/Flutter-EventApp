@@ -321,7 +321,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
             msg.message,
             style: theme.textTheme.bodyLarge?.copyWith(
               // Senin mesajının metni beyaz, diğerleri temanın metin rengi
-              color: isMe ? AppTheme.white : colorScheme.onSurface,
+              color: isMe ? AppTheme.white : Colors.black,
             ),
           ),
         ),
@@ -356,7 +356,7 @@ class _WebSocketPageState extends State<WebSocketPage> {
               child: TextField(
                 controller: messageController,
                 cursorColor: colorScheme.primary,
-                style: theme.textTheme.bodyLarge,
+                style: theme.textTheme.bodyLarge!.copyWith(color: Colors.black),
                 decoration: InputDecoration(
                   hintText: "Mesajınızı buraya yazın...",
                   hintStyle: theme.textTheme.bodyMedium?.copyWith(

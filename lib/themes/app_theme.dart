@@ -5,7 +5,7 @@ class AppTheme {
   // TEMA RENK PALETİ (PURPLE THEME)
   static const Color primaryColor = Color.fromARGB(245, 31, 2, 71); // Ana Mor Renk
   static const Color primaryDarkColor = Color.fromARGB(245, 23, 5, 49); // Koyu Mor
-  static const Color accentColor = Color.fromARGB(255, 105, 20, 121); // Açık Vurgu Moru
+  static const Color accentColor = Color.fromARGB(255, 180, 92, 197); // Açık Vurgu Moru
   static const Color loginPageBG = Color.fromARGB(245, 55, 29, 91);
 
   // Nötr Renkler
@@ -236,7 +236,7 @@ class AppTheme {
       error: error,
       onPrimary: white,
       onSecondary: white,
-      onSurface: white,
+      onSurface: Color.fromARGB(255, 169, 48, 48),
     ),
 
     // App Bar
@@ -288,7 +288,7 @@ class AppTheme {
       bodySmall: TextStyle(
         fontSize: smallFont,
         fontWeight: regular,
-        color: grey400,
+        color: Color.fromARGB(255, 255, 255, 255),
       ),
       
     ),
@@ -304,7 +304,7 @@ class AppTheme {
         fontSize: inputFont,
         fontWeight: medium,
       ),
-      hintStyle: const TextStyle(color: grey500, fontSize: inputFont),
+      hintStyle: const TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: inputFont),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: inputHorizontalPadding,
         vertical: inputVerticalPadding,

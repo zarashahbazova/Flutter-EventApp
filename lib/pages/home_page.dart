@@ -2,17 +2,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:staj_test1/pages/camera_page.dart';
+import 'package:staj_test1/pages/users_page.dart';
 import 'package:staj_test1/themes/app_theme.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../events/event.dart';
 import 'profile.dart';
-import 'messages.dart';
 
 class HomePage extends StatefulWidget {
   final String name;
   final String email;
+  final int userId;
 
-  const HomePage({super.key, required this.name, required this.email});
+  const HomePage({
+    super.key,
+    required this.name,
+    required this.userId,
+    required this.email,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -29,9 +35,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-   
+    connectWebSocket();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      showLocationDialog();
+      checkLocationDialog();
     });
   }
 
@@ -118,7 +124,9 @@ class _HomePageState extends State<HomePage> {
             right: AppTheme.pagePadding,
             top: AppTheme.pagePadding,
             bottom:
-                MediaQuery.of(context).viewInsets.bottom + AppTheme.pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
+                MediaQuery.of(context).viewInsets.bottom +
+                AppTheme
+                    .pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -242,16 +250,25 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void connectWebSocket() {
+  Future<void> connectWebSocket() async {
     try {
+    
       channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080"));
-      serverConnected = true;
 
-      channel?.stream.listen(
+      await channel!.ready;
+
+      if (!mounted) return;
+
+      setState(() {
+        serverConnected = true;
+      });
+
+      channel!.stream.listen(
         (message) {
-
           if (!mounted) return;
+
           final data = jsonDecode(message);
+
           if (data["type"] == "events") {
             setState(() {
               events = (data["events"] as List)
@@ -260,17 +277,29 @@ class _HomePageState extends State<HomePage> {
             });
           }
         },
-        onError: (error) {
-          serverConnected = false;
-          debugPrint("WebSocket Hatası: $error");
+        onError: (_) {
+          if (!mounted) return;
+
+          setState(() {
+            serverConnected = false;
+          });
         },
         onDone: () {
-          serverConnected = false;
-          debugPrint("Websocket bağlantısı kapandı");
+          if (!mounted) return;
+
+          setState(() {
+            serverConnected = false;
+          });
         },
       );
     } catch (e) {
-      debugPrint("Bağlantı kurulamadı: $e");
+      if (!mounted) return;
+
+      setState(() {
+        serverConnected = false;
+      });
+
+      debugPrint("Sunucu yok: $e");
     }
   }
 
@@ -481,10 +510,14 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      WebSocketPage(name: widget.name),
+      UsersPage(currentUserId: widget.userId, currentUserName: widget.name),
       homeScreen(),
       const CameraPage(),
-      ProfileScreen(name: widget.name, email: widget.email),
+      ProfileScreen(
+        userId: widget.userId,
+        name: widget.name,
+        email: widget.email,
+      ),
     ];
 
     return Scaffold(
@@ -501,12 +534,12 @@ class _HomePageState extends State<HomePage> {
           NavigationDestination(
             icon: Icon(Icons.message_outlined),
             selectedIcon: Icon(Icons.message),
-            label: "Mesajlar",
+            label: "Sohbetler",
           ),
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: "Ana Sayfa",
+            icon: Icon(Icons.event_outlined),
+            selectedIcon: Icon(Icons.event),
+            label: "Etkinlikler",
           ),
           NavigationDestination(
             icon: Icon(Icons.camera_alt_outlined),

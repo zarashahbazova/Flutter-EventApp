@@ -4,7 +4,6 @@ import 'package:sqflite/sqflite.dart';
 import '../models/user.dart';
 
 class DatabaseHelper {
-
   static final DatabaseHelper instance = DatabaseHelper._init();
   DatabaseHelper._init(); //tek databasehelper
 
@@ -20,12 +19,17 @@ class DatabaseHelper {
     return _database!;
   }
 
-  Future<Database> _initDB(String fileName) async { 
-    final dbPath = await getDatabasesPath(); //telefonun sqlite dosyalarının oldugu kalsörü bulur
+  Future<Database> _initDB(String fileName) async {
+    final dbPath =
+        await getDatabasesPath(); //telefonun sqlite dosyalarının oldugu kalsörü bulur
 
-    final path = join(dbPath, fileName); 
+    final path = join(dbPath, fileName);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);//veritabani acar, yoksa olusturrur
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDB,
+    ); //veritabani acar, yoksa olusturrur
   }
 
   Future _createDB(Database db, int version) async {
@@ -41,7 +45,9 @@ username TEXT NOT NULL UNIQUE,
 
 email TEXT NOT NULL UNIQUE,
 
-password TEXT NOT NULL
+password TEXT NOT NULL,
+
+profileImage TEXT
 
 )
 
@@ -79,18 +85,49 @@ password TEXT NOT NULL
 
     print(users);
   }
-  Future<void> resetDatabase() async {
+
+  Future<List<User>> getAllUsers() async {
     final db = await database;
 
-    await db.close();
+    final result = await db.query("users", orderBy: "fullName ASC");
 
-    _database = null;
-
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, "users.db");
-
-    await deleteDatabase(path);
+    return result.map((e) => User.fromMap(e)).toList();
   }
+
+  Future<void> deleteUser(String username) async {
+    final db = await database;
+
+    await db.delete("users", where: "username = ?", whereArgs: [username]);
+  }
+
+  Future<void> close() async {
+    final db = await instance.database;
+    db.close();
+  }
+
+  Future<void> updateProfileImage(int userId, String imagePath) async {
+    final db = await database;
+
+    await db.update(
+      "users",
+      {"profileImage": imagePath},
+      where: "id = ?",
+      whereArgs: [userId],
+    );
+  }
+
+  Future<User?> getUserById(int id) async {
+    final db = await database;
+
+    final result = await db.query("users", where: "id = ?", whereArgs: [id]);
+
+    if (result.isNotEmpty) {
+      return User.fromMap(result.first);
+    }
+
+    return null;
+  }
+
   Future<User?> login(String username, String password) async {
     await DatabaseHelper.instance.printUsers();
     final db = await instance.database;

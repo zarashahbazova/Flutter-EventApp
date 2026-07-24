@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     //bir kere çalisiyor, isLoggedIn = true ise otomatik homepage acicak
     super.initState();
-    DatabaseHelper.instance.resetDatabase();
+  
     checkLogin();
   }
 
@@ -43,11 +43,13 @@ class _LoginPageState extends State<LoginPage> {
     String email = prefs.getString("email") ?? "";
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //frame bitince bu ekrani calistir
+      int userId = prefs.getInt("userId") ?? 0;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
+          
           builder: (_) => HomePage(
+            userId: userId,
             name: name,
             email: email,
           ), //builder yeni sayfa oluşturan fonksiyon
@@ -57,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> login() async {
+    //await DatabaseHelper.instance.deleteUser("emre"); silinmesini istedigin kullanici adı
     //login fonksiyonu, zaman alabilir
     if (!_formKey.currentState!
         .validate()) //önce form widgetina gidiyor, donra formun içindeki tüm textformfieldları buluyor
@@ -91,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
       // giriş başarılıysa logini kapatıp homepage acar
       context,
       MaterialPageRoute(
-        builder: (_) => HomePage(name: user.fullName, email: user.email),
+        builder: (_) => HomePage(userId: user.id!, name: user.fullName, email: user.email),
       ),
     );
   }

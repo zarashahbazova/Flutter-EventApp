@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:staj_test1/themes/app_theme.dart';
 import '../database/database_helper.dart'; //sqlite ile iletiism
 import '../models/user.dart';
 
@@ -42,10 +43,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (!mounted) return; //kullanici sayfadan ciktiysa snackbar göstermeye çalismaz
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Kayıt başarılı.")));
-    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppTheme.grey600,
+        content: const Text("Kayıt başarılı."),
+      ),
+    );
   }
 
   @override

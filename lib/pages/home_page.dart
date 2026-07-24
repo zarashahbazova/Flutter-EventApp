@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-   
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showLocationDialog();
     });
@@ -117,7 +117,9 @@ class _HomePageState extends State<HomePage> {
             right: AppTheme.pagePadding,
             top: AppTheme.pagePadding,
             bottom:
-                MediaQuery.of(context).viewInsets.bottom + AppTheme.pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
+                MediaQuery.of(context).viewInsets.bottom +
+                AppTheme
+                    .pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -248,7 +250,6 @@ class _HomePageState extends State<HomePage> {
 
       channel?.stream.listen(
         (message) {
-
           if (!mounted) return;
           final data = jsonDecode(message);
           if (data["type"] == "events") {

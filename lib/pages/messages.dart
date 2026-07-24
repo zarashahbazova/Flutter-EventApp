@@ -20,7 +20,7 @@ class WebSocketPage extends StatefulWidget {
 
 class _WebSocketPageState extends State<WebSocketPage> {
   WebSocketChannel? channel;
-  StreamSubscription? _subscription;  
+  StreamSubscription? _subscription;
   bool connected = false;
   bool loading = true;
   List<ChatMessage> messages = [];
@@ -30,20 +30,27 @@ class _WebSocketPageState extends State<WebSocketPage> {
 
   @override
   void initState() {
+    print("INIT");
     super.initState();
 
-    try { //hata yakalamak icin
-      channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080")); //modejse bağlanmayi baslatir
+    try {
+      //hata yakalamak icin
+      channel = WebSocketChannel.connect(
+        Uri.parse("ws://localhost:8080"),
+      ); //modejse bağlanmayi baslatir
 
-      channel!.ready //bağlantının kurulmasını bekle
-          .then((_) { //başarılı olursa bu kodu calistir
+      channel!
+          .ready //bağlantının kurulmasını bekle
+          .then((_) {
+            //başarılı olursa bu kodu calistir
             if (!mounted) return;
 
             setState(() {
               connected = true;
             });
           })
-          .catchError((e) { //basarısız olursa bu kodu calistir
+          .catchError((e) {
+            //basarısız olursa bu kodu calistir
             if (!mounted) return;
 
             setState(() {
@@ -54,7 +61,8 @@ class _WebSocketPageState extends State<WebSocketPage> {
           });
 
       // ignore: unused_label
-      _subscription: channel!.stream.listen(
+      _subscription = 
+      channel!.stream.listen(
         (message) {
           if (!mounted) return;
 
@@ -69,14 +77,12 @@ class _WebSocketPageState extends State<WebSocketPage> {
                   .toList();
             });
 
-            Future.delayed(
-              const Duration(milliseconds: 100), 
-              (){
-
-                if (!mounted) return;
-               //  _scrollToBottom();
-              },
-            );
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (!mounted) {
+                return;
+              }
+              _scrollToBottom();
+            });
           }
         },
         onError: (_) {
@@ -98,16 +104,19 @@ class _WebSocketPageState extends State<WebSocketPage> {
   }
 
   @override
-  void dispose() { //sayfa uygulamadan kaldrılırken bi kere çalısır, kullandıgı tüm kaynakları temizletşr
-    _subscription?.cancel();    
+  void dispose() {
+    //sayfa uygulamadan kaldrılırken bi kere çalısır, kullandıgı tüm kaynakları temizletşr
+    print("DISPOSE ");
+    _subscription?.cancel();
     channel?.sink.close(); //websockeet bağlantısını kapatıyor
     messageController.dispose(); //controlleri temizler
     _scrollController.dispose(); //listeyi kontrol eder dispose da temizler
-    super.dispose(); 
+    super.dispose();
   }
 
-  void _scrollToBottom() { //yeni mesaj geldiginde otomatik olarak ekran en alta kayar
-    if (_scrollController.hasClients) { 
+  void _scrollToBottom() {
+    //yeni mesaj geldiginde otomatik olarak ekran en alta kayar
+    if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),

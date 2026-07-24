@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  //==================================================
+
   // TEMA RENK PALETİ (PURPLE THEME)
-  //==================================================
   static const Color primaryColor = Color.fromARGB(245, 31, 2, 71); // Ana Mor Renk
   static const Color primaryDarkColor = Color.fromARGB(245, 23, 5, 49); // Koyu Mor
   static const Color accentColor = Color.fromARGB(255, 105, 20, 121); // Açık Vurgu Moru
-  static const Color loginPageBG = Color.fromARGB(255, 91, 27, 98);
+  static const Color loginPageBG = Color.fromARGB(245, 55, 29, 91);
+
   // Nötr Renkler
   static const Color white = Colors.white;
   static const Color black = Colors.black;
@@ -33,9 +33,7 @@ class AppTheme {
   static const Color grey700 = Color(0xFF616161);
   static const Color grey800 = Color(0xFF424242);
 
-  //==================================================
   // FONT BOYUTLARI (TEXT SIZES)
-  //==================================================
   static const double displayFont = 36;
   static const double titleFont = 25;
   static const double headingFont = 22;
@@ -45,18 +43,14 @@ class AppTheme {
   static const double buttonFont = 16;
   static const double inputFont = 15;
 
-  //==================================================
   // FONT AĞIRLIKLARI (FONT WEIGHTS)
-  //==================================================
   static const FontWeight light = FontWeight.w300;
   static const FontWeight regular = FontWeight.w400;
   static const FontWeight medium = FontWeight.w500;
   static const FontWeight semiBold = FontWeight.w600;
   static const FontWeight bold = FontWeight.w700;
 
-  //==================================================
   // BOYUTLAR & YARIÇAPLAR (RADII & SPACING)
-  //==================================================
   static const double radiusSmall = 8.0;
   static const double radiusMedium = 16.0;
   static const double radiusLarge = 24.0;
@@ -73,9 +67,7 @@ class AppTheme {
   static const double inputHorizontalPadding = 20.0;
   static const double inputVerticalPadding = 16.0;
 
-  //==================================================
   // LIGHT THEME
-  //==================================================
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -93,7 +85,7 @@ class AppTheme {
 
     // App Bar
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
+      backgroundColor: loginPageBG,
       foregroundColor: white,
       centerTitle: true,
       elevation: 0,
@@ -231,9 +223,7 @@ class AppTheme {
     ),
   );
 
-  //==================================================
   // DARK THEME
-  //==================================================
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,

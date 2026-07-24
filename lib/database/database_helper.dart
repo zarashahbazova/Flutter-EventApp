@@ -4,28 +4,28 @@ import 'package:sqflite/sqflite.dart';
 import '../models/user.dart';
 
 class DatabaseHelper {
+
   static final DatabaseHelper instance = DatabaseHelper._init();
+  DatabaseHelper._init(); //tek databasehelper
 
-  DatabaseHelper._init();
-
-  static Database? _database;
+  static Database? _database; // sqlite bağlantisini tutar
 
   Future<Database> get database async {
     if (_database != null) {
-      return _database!;
+      return _database!; //daha önce acilmis mi, acilmissamevcut bağlantıyı döndürür
     }
 
-    _database = await _initDB("users.db");
+    _database = await _initDB("users.db"); //sqliet dosyasını acar
 
     return _database!;
   }
 
-  Future<Database> _initDB(String fileName) async {
-    final dbPath = await getDatabasesPath();
+  Future<Database> _initDB(String fileName) async { 
+    final dbPath = await getDatabasesPath(); //telefonun sqlite dosyalarının oldugu kalsörü bulur
 
-    final path = join(dbPath, fileName);
+    final path = join(dbPath, fileName); 
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path, version: 1, onCreate: _createDB);//veritabani acar, yoksa olusturrur
   }
 
   Future _createDB(Database db, int version) async {

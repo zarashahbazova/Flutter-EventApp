@@ -1,14 +1,16 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../chat/chat_message.dart';
 
 import 'package:flutter/material.dart';
-import '../themes/app_theme.dart'; 
+import '../themes/app_theme.dart';
 
 class WebSocketPage extends StatefulWidget {
-  final String name;
+  final String
+  name; //loginden gelen kullanici adi. değiştirilmeyen deger (final)
 
   const WebSocketPage({super.key, required this.name});
 
@@ -18,39 +20,46 @@ class WebSocketPage extends StatefulWidget {
 
 class _WebSocketPageState extends State<WebSocketPage> {
   WebSocketChannel? channel;
+  StreamSubscription? _subscription;  
   bool connected = false;
   bool loading = true;
   List<ChatMessage> messages = [];
   final TextEditingController messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController(); // Otomatik kaydırma için
+  final ScrollController _scrollController =
+      ScrollController(); // Otomatik kaydırma için
 
   @override
   void initState() {
     super.initState();
 
-    try {
-      channel = WebSocketChannel.connect(
-        Uri.parse("ws://localhost:8080"),
-      );
+    try { //hata yakalamak icin
+      channel = WebSocketChannel.connect(Uri.parse("ws://localhost:8080")); //modejse bağlanmayi baslatir
 
-      channel!.ready.then((_) {
-        if (!mounted) return;
+      channel!.ready //bağlantının kurulmasını bekle
+          .then((_) { //başarılı olursa bu kodu calistir
+            if (!mounted) return;
 
-        setState(() {
-          connected = true;
-        });
-      }).catchError((e) {
-        if (!mounted) return;
+            setState(() {
+              connected = true;
+            });
+          })
+          .catchError((e) { //basarısız olursa bu kodu calistir
+            if (!mounted) return;
 
-        setState(() {
-          connected = false;
-        });
+            setState(() {
+              connected = false;
+            });
 
-        debugPrint("Bağlantı kurulamadı: $e");
-      });
+            debugPrint("Bağlantı kurulamadı: $e");
+          });
 
-      channel!.stream.listen(
+      // ignore: unused_label
+      _subscription: channel!.stream.listen(
         (message) {
+          if (!mounted) return;
+
+          print("mesaj geldi");
+
           final data = jsonDecode(message);
 
           if (data["type"] == "chat") {
@@ -61,17 +70,23 @@ class _WebSocketPageState extends State<WebSocketPage> {
             });
 
             Future.delayed(
-              const Duration(milliseconds: 100),
-              _scrollToBottom,
+              const Duration(milliseconds: 100), 
+              (){
+
+                if (!mounted) return;
+               //  _scrollToBottom();
+              },
             );
           }
         },
         onError: (_) {
+          if (!mounted) return;
           setState(() {
             connected = false;
           });
         },
         onDone: () {
+          if (!mounted) return;
           setState(() {
             connected = false;
           });
@@ -81,16 +96,18 @@ class _WebSocketPageState extends State<WebSocketPage> {
       connected = false;
     }
   }
+
   @override
-  void dispose() {
-    channel?.sink.close();
-    messageController.dispose();
-    _scrollController.dispose(); // Dispose etmeyi unutma
-    super.dispose();
+  void dispose() { //sayfa uygulamadan kaldrılırken bi kere çalısır, kullandıgı tüm kaynakları temizletşr
+    _subscription?.cancel();    
+    channel?.sink.close(); //websockeet bağlantısını kapatıyor
+    messageController.dispose(); //controlleri temizler
+    _scrollController.dispose(); //listeyi kontrol eder dispose da temizler
+    super.dispose(); 
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
+  void _scrollToBottom() { //yeni mesaj geldiginde otomatik olarak ekran en alta kayar
+    if (_scrollController.hasClients) { 
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),
@@ -111,15 +128,13 @@ class _WebSocketPageState extends State<WebSocketPage> {
     };
 
     if (!connected || channel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Sunucuya bağlanılamadı."),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Sunucuya bağlanılamadı.")));
       return;
     }
 
-channel!.sink.add(jsonEncode(chat));
+    channel!.sink.add(jsonEncode(chat));
     messageController.clear();
   }
 
@@ -131,36 +146,50 @@ channel!.sink.add(jsonEncode(chat));
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               "Sohbet Odası",
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.titleLarge!.copyWith(
                 color: AppTheme.white,
                 fontWeight: AppTheme.bold,
               ),
             ),
-            Text(
-              "Canlı Bağlantı",
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.white.withValues(alpha: 0.7),
-              ),
+
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: connected ? Colors.green : Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+
+                const SizedBox(width: 6),
+
+                Text(
+                  connected ? "Canlı Bağlantı" : "Bağlantı Yok",
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppTheme.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
           // Mesaj Listesi Alanı
           Expanded(
-          child: !connected
-            ? const Center(
-                child: Text(
-                  "Sunucuya bağlanılamadı.",
-                ),
-              )
-            : messages.isEmpty
+            child: !connected
+                ? const Center(child: Text("Sunucuya bağlanılamadı."))
+                : messages.isEmpty
                 ? _buildEmptyState(theme)
                 : ListView.separated(
                     controller: _scrollController,
@@ -175,7 +204,6 @@ channel!.sink.add(jsonEncode(chat));
                     },
                   ),
           ),
-
           // Mesaj Giriş Alanı (Alt Kısım)
           _buildMessageInputArea(theme, colorScheme, isDark),
         ],
@@ -209,10 +237,15 @@ channel!.sink.add(jsonEncode(chat));
 
   // Modern Mesaj Balonu Tasarımı
   Widget _buildMessageBubble(
-      ChatMessage msg, bool isMe, ThemeData theme, ColorScheme colorScheme) {
+    ChatMessage msg,
+    bool isMe,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Column(
-      crossAxisAlignment:
-          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isMe
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         // Başkasının mesajıysa kullanıcı adını göster
         if (!isMe)
@@ -242,8 +275,12 @@ channel!.sink.add(jsonEncode(chat));
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(AppTheme.radiusMedium),
               topRight: const Radius.circular(AppTheme.radiusMedium),
-              bottomLeft: Radius.circular(isMe ? AppTheme.radiusMedium : 0), // Kuyruk efekti
-              bottomRight: Radius.circular(isMe ? 0 : AppTheme.radiusMedium), // Kuyruk efekti
+              bottomLeft: Radius.circular(
+                isMe ? AppTheme.radiusMedium : 0,
+              ), // Kuyruk efekti
+              bottomRight: Radius.circular(
+                isMe ? 0 : AppTheme.radiusMedium,
+              ), // Kuyruk efekti
             ),
             // Başkasının mesajına hafif gölge/kenarlık
             border: isMe
@@ -271,7 +308,10 @@ channel!.sink.add(jsonEncode(chat));
 
   // Modern Mesaj Giriş Alanı Tasarımı
   Widget _buildMessageInputArea(
-      ThemeData theme, ColorScheme colorScheme, bool isDark) {
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -321,7 +361,8 @@ channel!.sink.add(jsonEncode(chat));
                     ),
                   ),
                 ),
-                textCapitalization: TextCapitalization.sentences, // Cümle başı büyük harf
+                textCapitalization:
+                    TextCapitalization.sentences, // Cümle başı büyük harf
               ),
             ),
 

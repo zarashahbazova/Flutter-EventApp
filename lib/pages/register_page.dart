@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
+import '../database/database_helper.dart'; //sqlite ile iletiism
 import '../models/user.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -30,22 +30,21 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       return;
     }
-
-    final user = User(
+    
+    final user = User( //textfieldlardan gelen bildirmler user nesnesine dönüstürülüyor
       fullName: fullNameController.text.trim(),
       username: usernameController.text.trim(),
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
     );
 
-    await DatabaseHelper.instance.createUser(user);
+    await DatabaseHelper.instance.createUser(user); //sqlitea insert işlemi gönderirliyor
 
-    if (!mounted) return;
+    if (!mounted) return; //kullanici sayfadan ciktiysa snackbar göstermeye çalismaz
 
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text("Kayıt başarılı.")));
-
     Navigator.pop(context);
   }
 
@@ -88,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 decoration: deco("E-posta", Icons.email),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return "E-posta giriniz";
-                  final r = RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  final r = RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$'); //belirli kurala göre kontrol
                   if (!r.hasMatch(v)) return "Geçerli e-posta giriniz";
                   return null;
                 },
@@ -105,7 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
               TextFormField(
                 controller: confirmPasswordController,
                 obscureText: true,
-                decoration: deco("Şifre Tekrar", Icons.lock_outline),
+                decoration: deco("Şifre (Tekrar)", Icons.lock_outline),
                 validator: (v) =>
                     v != passwordController.text ? "Şifreler uyuşmuyor" : null,
               ),

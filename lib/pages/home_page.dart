@@ -5,7 +5,7 @@ import 'package:staj_test1/themes/app_theme.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../events/event.dart';
 import 'profile.dart';
-import 'websocket_page.dart';
+import 'messages.dart';
 
 class HomePage extends StatefulWidget {
   final String name;
@@ -20,29 +20,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   List<Event> events = [];
-  //late WebSocketChannel channel;
   WebSocketChannel? channel;
 
   bool get isAdmin => widget.email == "zarifesahbazz@gmail.com";
   bool serverConnected = false;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   connectWebSocket();
-
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     checkLocationDialog();
-  //   });
-  // }
   @override
   void initState() {
     super.initState();
-
-    // connectWebSocket();   // Şimdilik kapalı
-
+   
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkLocationDialog();
+      showLocationDialog();
     });
   }
 
@@ -51,8 +39,8 @@ class _HomePageState extends State<HomePage> {
 
     showModalBottomSheet(
       context: context,
-      isDismissible: false,
-      enableDrag: false,
+      isDismissible: false, //disari tiklama
+      enableDrag: false, //sürüklenme
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppTheme.cardRadius),
@@ -129,7 +117,7 @@ class _HomePageState extends State<HomePage> {
             right: AppTheme.pagePadding,
             top: AppTheme.pagePadding,
             bottom:
-                MediaQuery.of(context).viewInsets.bottom + AppTheme.pagePadding,
+                MediaQuery.of(context).viewInsets.bottom + AppTheme.pagePadding, //telefon klavyesinin yüksekliğini öğreniyor
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -167,7 +155,7 @@ class _HomePageState extends State<HomePage> {
                           dateController.text.isEmpty ||
                           timeController.text.isEmpty ||
                           locationController.text.isEmpty) {
-                        return;
+                        return; //boş alan kontrolü
                       }
 
                       final event = {
@@ -224,8 +212,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               ListTile(
                 leading: Icon(Icons.edit, color: theme.colorScheme.primary),
-                title: Text("Düzenle",
-                style:theme.textTheme.bodyMedium),
+                title: Text("Düzenle", style: theme.textTheme.bodyMedium),
                 onTap: () {
                   Navigator.pop(context);
                   // Düzenleme mantığı
@@ -261,6 +248,8 @@ class _HomePageState extends State<HomePage> {
 
       channel?.stream.listen(
         (message) {
+
+          if (!mounted) return;
           final data = jsonDecode(message);
           if (data["type"] == "events") {
             setState(() {
@@ -287,7 +276,7 @@ class _HomePageState extends State<HomePage> {
   String getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return "Günaydın";
-    if (hour < 18) return "İyi Günler";
+    if (hour < 20) return "İyi Günler";
     return "İyi Akşamlar";
   }
 
@@ -451,6 +440,21 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ],
                                 ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today_outlined,
+                                      size: 16,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      event.date,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
                               ],
                             ),
                           ),
@@ -468,6 +472,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    print("dispose çalıstıııııı");
     channel?.sink.close();
     super.dispose();
   }
@@ -479,24 +484,13 @@ class _HomePageState extends State<HomePage> {
       WebSocketPage(name: widget.name),
       ProfileScreen(name: widget.name, email: widget.email),
     ];
-    // final pages = [
-    //   homeScreen(),
-
-    //   const Center(
-    //     child: Text("Mesajlar Sayfası"),
-    //   ),
-
-    //   ProfileScreen(
-    //     name: widget.name,
-    //     email: widget.email,
-    //   ),
-    // ];
 
     return Scaffold(
       body: pages[_currentIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
+          print("tab:$index");
           setState(() {
             _currentIndex = index;
           });
@@ -521,6 +515,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   void checkLocationDialog() {}
 }
